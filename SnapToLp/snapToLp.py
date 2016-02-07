@@ -1,6 +1,10 @@
 import snap;
+import sys;
 
-Graph = snap.LoadEdgeList(snap.PUNGraph, "oregon1_010331.txt", 0, 1)
+if(len(sys.argv) != 2):
+  sys.exit("usage: python snapToLp.py <file>")
+
+Graph = snap.LoadEdgeList(snap.PUNGraph, sys.argv[1], 0, 1)
 
 #for n in Graph.Nodes():
 
