@@ -4,5 +4,6 @@
 python snap.py > outputfile.lp
 
 ## TODO:
-get filename as argument
-support for more than one file.
+
+* get filename as argument
+* support for more than one file.
