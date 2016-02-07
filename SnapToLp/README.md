@@ -1,7 +1,7 @@
 #translates from a SNAP graph file to CPLEX-lp
 
 ## usage:
-python snap.py > outputfile.lp
+python snapToLp.py > outputfile.lp
 
 ## TODO:
 
