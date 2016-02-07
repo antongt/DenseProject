@@ -1,8 +1,8 @@
-translates from a SNAP graph file to CPLEX-lp
+#translates from a SNAP graph file to CPLEX-lp
 
-*usage:
+## usage:
 python snap.py > outputfile.lp
 
-*TODO:
+## TODO:
 get filename as argument
 support for more than one file.
