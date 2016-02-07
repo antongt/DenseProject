@@ -41,7 +41,7 @@ to solve the lp with CPLEX:
 
 
     CPLEX> read outputfile.lp lp
-    CPLEX> optimize
+     CPLEX> optimize
 
 * to display the value of the variables run:
 
