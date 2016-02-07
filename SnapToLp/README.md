@@ -32,22 +32,20 @@ for translating two graph:
 
 to solve the lp with CPLEX:
 
-* start cplex with: 
-
+Start cplex with: 
 
     $ cplex
 
-* run the commands:
-
+Run the commands:
 
     CPLEX> read outputfile.lp lp
-     CPLEX> optimize
+    CPLEX> optimize
 
-* to display the value of the variables run:
-
+To display the value of the variables run:
 
     CPLEX> display solution variables -
 
 ## TODO:
 
 * support for more than two file.
+* implement greedy and bruteforce algorithm to compare results
