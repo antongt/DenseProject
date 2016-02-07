@@ -1,13 +1,13 @@
 #translates from a SNAP graph file to CPLEX-lp
 
 
-translates textfile of the format (see [SNAP](http://snap.stanford.edu/data/index.html)) :
+translates textfile of the format (see [SNAP Datasets](http://snap.stanford.edu/data/index.html)) :
 
     # FromCol    ToCol
       i1         j3
       i2         j3
 
-to CPLEX-lp format (see [CPLEX](http://lpsolve.sourceforge.net/5.0/CPLEX-format.htm)):
+to CPLEX-lp format (see [CPLEX lp format guide](http://lpsolve.sourceforge.net/5.0/CPLEX-format.htm)):
 
     maximize 
      x_ij + ... + x_nm
@@ -19,7 +19,7 @@ to CPLEX-lp format (see [CPLEX](http://lpsolve.sourceforge.net/5.0/CPLEX-format.
      y_i  >= 0
     end
 
-using the library for python provided by SNAP (see [SNAP](http://snap.stanford.edu/snappy/index.html))
+using the library for python provided by SNAP (see [SNAP Documentation](http://snap.stanford.edu/snappy/index.html))
 
 ## usage:
 
