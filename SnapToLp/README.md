@@ -24,7 +24,7 @@ The programs prints the lp-format to STDOUT, so when using the programs we recom
 
 for translating one graph:
 
-    python snapToLp.py > outputfile.lp
+    python snapToLp.py <file> > outputfile.lp
 
 for translating two graph:
 
@@ -33,11 +33,16 @@ for translating two graph:
 to solve the lp with CPLEX:
 
 * start cplex with 
+
     $ cplex
+
 * run the commands:
+
     CPLEX> read outputfile.lp lp
     CPLEX> optimize
+
 * to display the value of the variables run:
+
     CPLEX> display solution variables -
 
 ## TODO:
