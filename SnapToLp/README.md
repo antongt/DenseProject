@@ -7,7 +7,7 @@ translates textfile of the format (see [SNAP Datasets](http://snap.stanford.edu/
       i1         j3
       i2         j3
 
-to CPLEX-lp format (see [CPLEX lp format guide](http://lpsolve.sourceforge.net/5.0/CPLEX-format.htm)):
+to CPLEX-lp format (see [CPLEX lp format guide](http://www-01.ibm.com/support/knowledgecenter/SS9UKU_12.4.0/com.ibm.cplex.zos.help/FileFormats/topics/LP.html)):
 
     maximize 
      x_ij + ... + x_nm
@@ -50,5 +50,5 @@ To display the value of the variables run:
 
 ## TODO:
 
-* support for more than two file.
 * implement greedy and bruteforce algorithm to compare results
+* etc...
