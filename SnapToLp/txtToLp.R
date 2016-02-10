@@ -36,7 +36,7 @@ txtToLp <- function(files){
   #
   nodeGreaterThan0 = paste("y_",nodes,">=0",sep = "",collapse = "\n") #all the constraints for the nodes
   nodesum = paste(paste("y_",nodes,sep = "",collapse = "+"),"<=1")
-  #return(paste("Maximiz t \nSubject to:\n",edgesums,"\n",nodesum,"\n",edgeRestrictions,"\n",
-  #           nodeGreaterThan0,"\n",edgeGreaterThan0,"\nend"))
-  return (0)
+  return(paste("Maximiz t \nSubject to:\n",paste0(edgesums,"\n",edgeRestrictions,"\n",
+                                                  edgeGreaterThan0,collapse = "\n"),
+               "\n",nodesum,"\n",nodeGreaterThan0,"\nend"))
 }
