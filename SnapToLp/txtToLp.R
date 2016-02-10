@@ -31,12 +31,12 @@ txtToLp <- function(files){
                          unlist(edgesets[[f]][seekedEdges,]),"<=0",sep = "",collapse = "\n")
     #xc_ij >=0
     edgeGreaterThan0[f] = paste("x",f,"_",1:numberOfEdges,">=0",sep = "",collapse = "\n")
-    edgesums[f] = paste(paste("x",f,"_",1:numberOfEdges,sep = "",collapse = "+"),"-t>=0")
+    edgesums[f] = paste(paste("x",f,"_",1:numberOfEdges,sep = "",collapse = "+\n"),"-t>=0")
   }
   #
   nodeGreaterThan0 = paste("y_",nodes,">=0",sep = "",collapse = "\n") #all the constraints for the nodes
-  nodesum = paste(paste("y_",nodes,sep = "",collapse = "+"),"<=1")
-  return(paste("Maximiz t \nSubject to:\n",paste0(edgesums,"\n",edgeRestrictions,"\n",
+  nodesum = paste(paste("y_",nodes,sep = "",collapse = "+\n"),"<=1")
+  return(paste("Maximize t \nSubject to:\n",paste0(edgesums,"\n",edgeRestrictions,"\n",
                                                   edgeGreaterThan0,collapse = "\n"),
                "\n",nodesum,"\n",nodeGreaterThan0,"\nend"))
 }
