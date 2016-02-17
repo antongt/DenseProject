@@ -55,4 +55,4 @@ To write the solution to a file run:
 ## TODO:
 
 * implement greedy and bruteforce algorithm to compare results
-* etc...
+* write a script which takes graphs files and give a solution directly, with the help of cplex libraries.
