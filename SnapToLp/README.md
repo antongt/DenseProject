@@ -48,6 +48,10 @@ To display the value of the variables run:
 
     CPLEX> display solution variables -
 
+To write the solution to a file run:
+
+    CPLEX> write <file> sol
+
 ## TODO:
 
 * implement greedy and bruteforce algorithm to compare results
