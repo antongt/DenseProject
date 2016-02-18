@@ -4,7 +4,7 @@ import sys;
 oneGraph = False
 
 if(len(sys.argv) < 2):
-  sys.exit("usage: python snapToLp.py <file1> ... <fileN>")
+  sys.exit("usage: python snap2lp.py <file1> ... <fileN>")
 if(len(sys.argv) == 2):
   oneGraph = True
 
