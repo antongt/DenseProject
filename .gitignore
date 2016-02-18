@@ -3,4 +3,5 @@
 *.prof
 *.swp
 *.tmp
+*.o
 *~*
