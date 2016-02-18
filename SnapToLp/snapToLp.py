@@ -4,14 +4,14 @@ import sys;
 if(len(sys.argv) != 2):
   sys.exit("usage: python snapToLp.py <file>")
 
-Graph = snap.LoadEdgeList(snap.PUNGraph, sys.argv[1], 0, 1)
-
+Graph = snap.LoadEdgeList(snap.PNGraph, sys.argv[1], 0, 1)
+snap.MakeUnDir(Graph)
 #for n in Graph.Nodes():
 
 print "Maximize"
 b = " "
 for e in Graph.Edges():
-  b = b + ("x"+''.join(map(str,e.GetId()))+" + ")
+  b = b + ("\nx"+''.join(map(str,e.GetId()))+" + ")
 
 b = b[:-2]
 print b
@@ -27,7 +27,7 @@ for e in Graph.Edges():
 
 a = " "
 for n in Graph.Nodes():
-  print "y"+str(n.GetId())+" >= 0"
+  print "\ny"+str(n.GetId())+" >= 0"
   a = a + ("y"+str(n.GetId())+" + ")
 
 a = a[:-2]
