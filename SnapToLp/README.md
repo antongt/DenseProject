@@ -9,7 +9,7 @@ translates textfile of the format (see [SNAP Datasets](http://snap.stanford.edu/
       .          .
       .          .
 
-to CPLEX-lp format where the resulting lp is an lp formulation of DS or DCS (see [CPLEX lp format guide](http://www-01.ibm.com/support/knowledgecenter/SS9UKU_12.4.0/com.ibm.cplex.zos.help/FileFormats/topics/LP.html)):
+to CPLEX-lp format where the resulting lp is an lp formulation of [DS](https://en.wikipedia.org/wiki/Dense_subgraph) or [DCS](http://link.springer.com/chapter/10.1007%2F978-3-319-23525-7_39) (see [CPLEX lp format guide](http://www-01.ibm.com/support/knowledgecenter/SS9UKU_12.4.0/com.ibm.cplex.zos.help/FileFormats/topics/LP.html)):
 
     maximize 
      x_ij + ... + x_nm
