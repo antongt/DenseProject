@@ -3,4 +3,6 @@
 *.prof
 *.swp
 *.tmp
+*.o
+*.pyc
 *~*

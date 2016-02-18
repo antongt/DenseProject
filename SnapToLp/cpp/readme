@@ -1,0 +1,19 @@
+The code I wrote in c++. It depends on c++14 and uses a library called pugixml
+(http://pugixml.org/) for the svg part.
+
+Files in this directory:
+
+Makefile for compiling.
+
+main.cpp has the input/output.
+
+graph.h + graph.cpp has the model of the graph and related functions, such as
+the greedy algorithm.
+
+graphGen.h + graphGen.cpp was an attempt to generate graphs, but it is
+unfinished.
+
+svg.h + svg.cpp has code to generate svg graphics.
+
+layout.h + layout.cpp has some common functions for graphGen and svg, for
+hexagonal grid.
