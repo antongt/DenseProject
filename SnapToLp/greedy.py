@@ -45,23 +45,23 @@ def getDensestSubgraphGreedy(original):
     updatesSinceSave = 0
     while copy.GetNodes() > 0:
         printProgress("Searching for highest density: ", original.GetNodes(), copy.GetNodes())
-        copy.DelNode(findSmallestDegree(copy))
         if density(copy) > highestDensity:
             highestDensity = density(copy)
             updatesSinceSave += 1
             if updatesSinceSave >= 100:
                 updatesSinceSave = 0
                 searchSpace = snapGraphCopy.copyGraph(copy)
+        copy.DelNode(findSmallestDegree(copy))
     print("Highest density found: " + str(highestDensity))
 
     # Pass 2, look for the subgraph that has a density equal to highest seen.
     # Since we start from a much smaller search space, this can be very fast.
     while searchSpace.GetNodes() > 0:
-        searchSpace.DelNode(findSmallestDegree(searchSpace))
         # Is there a chance of some rounding error here? Comparing floats
         # without a margin of error. But they come from the same division.
         if density(searchSpace) >= highestDensity:
             break
+        searchSpace.DelNode(findSmallestDegree(searchSpace))
     return searchSpace
 
 def printQuickStats(g):
