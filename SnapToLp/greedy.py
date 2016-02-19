@@ -1,4 +1,4 @@
-import snap
+from lib import snap
 import sys
 import time
 import snapGraphCopy
