@@ -1,13 +1,28 @@
 from lib import snap;
 import sys;
+from os import walk;
+from os import path;
 
 oneGraph = False
+fileList = []
 
 if(len(sys.argv) < 2):
   sys.exit("usage: python snap2lp.py <file1> ... <fileN>")
 if(len(sys.argv) == 2):
+  if sys.argv[1] == "-d":
+    sys.exit("no input dir.")
   oneGraph = True
+if(len(sys.argv) == 3 and sys.argv[1] == "-d"):
+  if(path.isdir(sys.argv[2])):
+    for (dirpath,dirname,filenames) in walk(sys.argv[2]):
+      fileList.extend(map (lambda x: path.join(dirpath,x), filenames))
+      break
+  else: sys.exit("dir not found")
 
+if(len(sys.argv) > 3):
+  if(sys.argv[1] == "-d"):
+    sys.exit("only 1 dir supported")
+  else: fileList = sys.argv[1:]
 
 
 def printSingleGraph(Graph):
@@ -106,6 +121,6 @@ if(oneGraph):
   printSingleGraph(Graph)
 else:
   Graphs = []
-  for i in range(1,len(sys.argv)):
-    Graphs.append(snap.LoadEdgeList(snap.PUNGraph, sys.argv[i], 0, 1))
+  for file in fileList:
+    Graphs.append(snap.LoadEdgeList(snap.PUNGraph, file, 0, 1))
   printMoreGraphs(Graphs)
