@@ -35,8 +35,6 @@ def printSingleGraph(Graph):
   print "\nsubject to"
   print (" +\n".join(nodes))+" <= 1" # sum yi <= 1
   print " \n".join(edgeCons) # xij <= yi and xij <= yj
-  print (" >= 0\n".join(edges))+" >= 0" # xij >= 0
-  print (" >= 0\n".join(nodes))+" >= 0" # yi  >= 0
   print "\nend"
   return;
 
@@ -96,10 +94,8 @@ def printMoreGraphs(Graphs):
   print "maximize t"
   print "\nsubject to"
   print (" +\n".join(nodes))+" <= 1" # sum yi <= 1
-  print (" >= 0\n".join(nodes))+" >= 0" # yi  >= 0
   for e in allEdges:
     print (" +\n".join(e))+" - t >= 0" # sum xij >= t
-    print (" >= 0\n".join(e))+" >= 0" # xij >= 0
   for c in allEdgeCons:
     print " \n".join(c) # xij <= yi and xij <= yj
   print "\nend"
