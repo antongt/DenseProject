@@ -107,7 +107,6 @@ def printProgress(message, originalSize, currentSize):
 # Get the densest common subgraph using the greedy algorithm.
 def getDCS_Greedy(originalGraphs):
     # Don't touch any of the original graphs, caller may use them further.
-    # Since all graphs have the same node set, it doesn't matter which we copy.
     graphs = []
     for og in originalGraphs:
         graphs.append(snapGraphCopy.copyGraph(og))
@@ -115,7 +114,6 @@ def getDCS_Greedy(originalGraphs):
     # track of a set of nodes that we know contains the densest subgraph. The
     # trick is to make it as small as possible while also minimizing the number
     # of updates.
-    #searchSpace = snapGraphCopy.copyGraph(graphs[0])
     searchSpace = []
     for n in graphs[0].Nodes():
         searchSpace.append(n.GetId())
@@ -187,6 +185,7 @@ def saveResults(graph, runTime):
     print("Saving as " + fileName)
     description = "Densest subgraph by greedy algorithm, completed in " + runTime
     snap.SaveEdgeList(graph, fileName)
+    #snap.SaveEdgeList(graph, fileName, description)
 
 if(len(sys.argv) < 2):
   sys.exit("Usage: python " + sys.argv[0] + " <file1> <file2> ...")
@@ -197,20 +196,16 @@ print("Imported " + str(len(graphs)) + " graphs in " + timer())
 
 print("Preprocessing...")
 preprocess(graphs)
-print(str(graphs[0].GetNodes()) + " nodes are common to all graphs")
-print("Preprocessing took " + timer())
-
 # Make sure all graphs have the same amount of nodes. There could be a deeper
 # check here.
 for g in graphs:
     assert g.GetNodes() == graphs[0].GetNodes()
+print(str(graphs[0].GetNodes()) + " nodes are common to all graphs")
+print("Preprocessing took " + timer())
 
-#g2 = getDensestSubgraphGreedy(graphs[0])
 g2 = getDCS_Greedy(graphs)
 runTime = timer()
 printQuickStats(g2)
 print("The greedy algorithm completed in " + runTime)
 saveResults(g2, runTime)
-
-
 
