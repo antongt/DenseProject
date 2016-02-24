@@ -77,10 +77,19 @@ def printMoreGraphs(Graphs):
   for i in u:
     w.Add(i)
 
+  print >> sys.stderr, str(len(u))
+
   # update graph list with subgraph induced by common nodes.
   for g in range(0,len(Graphs)):
     Graphs[g] = snap.GetSubGraph(Graphs[g],w)
 
+  ng = 0
+  print >> sys.stderr, "edges:\n"
+  for g in range(0,len(Graphs)):
+    ng = ng + snap.CntUniqUndirEdges(Graphs[g])
+    print >> sys.stderr, snap.CntUniqUndirEdges(Graphs[g])
+
+  print >> sys.stderr, ng
 ##### preprocessing end #####
 
 
