@@ -57,7 +57,8 @@ def subGraph(g, v):
     for n in nodesToRemove:
         g.DelNode(n)
 
-# Find the node with the smallest degree.
+# Find the node with the smallest degree. Uses the lookup table to avoid having
+# to traverse the entire graph.
 def findSmallestDegree(graphs):
     global lookupTable
     degree = 0
@@ -82,18 +83,14 @@ def addToLookupTable(graphs, node):
     while degree >= len(lookupTable):
         lookupTable.append([])
     lookupTable[degree].append(node)
-    #print("Added " + str(node))
-    #printLookupTable()
 
 def removeFromLookupTable(graphs, node):
     global lookupTable
     degree = getMinDegree(graphs, node)
     if lookupTable[degree].count(node) > 0:
         lookupTable[degree].remove(node)
-    #print("Removed " + str(node))
-    #printLookupTable()
 
-# For debugging.
+# For debugging. Use with tiny graphs only.
 def printLookupTable():
     global lookupTable
     deg = 0
@@ -114,8 +111,7 @@ def getMinDegree(graphs, node):
 
 # Calculate the average degree as density of a single graph.
 def density(g):
-    # Avoid division by zero.
-    if g.GetNodes() == 0:
+    if g.GetNodes() == 0: # Avoid division by zero.
         return 0
     else:
         return g.GetEdges()/float(g.GetNodes())
@@ -146,43 +142,22 @@ def getDCS_Greedy(originalGraphs):
     graphs = []
     for og in originalGraphs:
         graphs.append(snapGraphCopy.copyGraph(og))
-    # To avoid having to do two full passes over the entire graph, we keep
-    # track of a set of nodes that we know contains the densest subgraph. The
-    # trick is to make it as small as possible while also minimizing the number
-    # of updates.
-    searchSpace = []
-    for n in graphs[0].Nodes():
-        searchSpace.append(n.GetId())
     # Create a table of nodes by degree, to enable faster lookup.
     initLookupTable(graphs)
 
     # Pass 1, to find the subgraph with the highest density.
     highestDensity = 0
-    updatesSinceSave = 0
     while graphs[0].GetNodes() > 1:
         printProgress("Searching for highest density: ",
                 originalGraphs[0].GetNodes(), graphs[0].GetNodes())
-        if densityMultiple(graphs) > highestDensity:
-            highestDensity = densityMultiple(graphs)
-            updatesSinceSave += 1
-            if updatesSinceSave >= 100:
-                updatesSinceSave = 0
-                searchSpace = []
-                for n in graphs[0].Nodes():
-                    searchSpace.append(n.GetId())
+        highestDensity = max(highestDensity, densityMultiple(graphs))
         removeSmallestDegreeNode(graphs)
-
     print("Highest density found: " + str(highestDensity))
 
     # Pass 2, look for the subgraph that has a density equal to highest seen.
-    # Since we start from a much smaller search space, this can be very fast.
-    print("Going back to find best solution. Search space is " +
-            str(len(searchSpace)) + " nodes")
     graphs = []
     for og in originalGraphs:
         graphs.append(snapGraphCopy.copyGraph(og))
-    for g in graphs:
-        subGraph(g, searchSpace)
     initLookupTable(graphs)
 
     while graphs[0].GetNodes() > 1:
@@ -197,8 +172,10 @@ def getDCS_Greedy(originalGraphs):
     return (graphs[0], highestDensity)
 
 # Find the node with the smallest degree and remove it. Also update the lookup
-# table. Not only the removed node needs to be updated, also all nodes sharing
-# an edge with it.
+# table. The node that is removed from the graph must also be removed from the
+# table, and all its neighbors must have their degree updated.
+# TODO: Instead of removing and re-adding the nodes in the lookup table, how
+# about just moving them one step up? The degree only changes by -1, right?
 def removeSmallestDegreeNode(graphs):
     smallestNode = findSmallestDegree(graphs)
     neighbors = getNeighbors(graphs, smallestNode)
@@ -220,8 +197,6 @@ def getNeighbors(graphs, node):
             neighbor = g.GetNI(node).GetNbrNId(edgeNum)
             if not neighbor in neighbors:
                 neighbors.append(neighbor)
-    #sys.stdout.write(str(node) + " neighbors ")
-    #print(neighbors)
     return neighbors
 
 def printQuickStats(g):
@@ -273,7 +248,9 @@ print("Imported " + str(len(graphs)) + " graphs in " + timer())
 
 # If multiple graphs, do some preprocessing to make sure they are over the same
 # set of nodes.
-if len(graphs) > 1:
+if len(graphs) == 1:
+    print("Only one graph, skipping preprocessing.")
+else:
     print("Preprocessing...")
     preprocess(graphs)
     # Make sure all graphs have the same amount of nodes.
