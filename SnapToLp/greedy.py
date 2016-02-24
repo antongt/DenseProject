@@ -59,17 +59,53 @@ def subGraph(g, v):
 
 # Find the node with the smallest degree.
 def findSmallestDegree(graphs):
-    smallestDegree = float("Infinity")
-    smallestNode = float("NaN")
-    for n in graphs[0].Nodes():
-        degree = getDegree(graphs, n.GetId())
-        if degree < smallestDegree:
-            smallestDegree = degree
-            smallestNode = n.GetId()
+    global lookupTable
+    degree = 0
+    while len(lookupTable[degree]) == 0:
+        degree += 1
+    smallestNode = lookupTable[degree][0]
+    assert graphs[0].IsNode(smallestNode)
     return smallestNode
 
+# Create the data structure that is used in the function findSmallestDegree().
+# It is a list-of-lists, such that lookupTable[1] is a list of all nodes of
+# degree 1 (as reported by getMinDegree()).
+def initLookupTable(graphs):
+    global lookupTable
+    lookupTable = []
+    for n in graphs[0].Nodes():
+        addToLookupTable(graphs, n.GetId())
+
+def addToLookupTable(graphs, node):
+    global lookupTable
+    degree = getMinDegree(graphs, node)
+    while degree >= len(lookupTable):
+        lookupTable.append([])
+    lookupTable[degree].append(node)
+    #print("Added " + str(node))
+    #printLookupTable()
+
+def removeFromLookupTable(graphs, node):
+    global lookupTable
+    degree = getMinDegree(graphs, node)
+    if lookupTable[degree].count(node) > 0:
+        lookupTable[degree].remove(node)
+    #print("Removed " + str(node))
+    #printLookupTable()
+
+# For debugging.
+def printLookupTable():
+    global lookupTable
+    deg = 0
+    for degreeList in lookupTable:
+        sys.stdout.write(str(deg) + ": ")
+        for node in degreeList:
+            sys.stdout.write(str(node) + " ")
+        print("")
+        deg += 1
+
 # Get the smallest degree of node, in all graphs.
-def getDegree(graphs, node):
+def getMinDegree(graphs, node):
     result = float("Infinity")
     for g in graphs:
         assert g.IsNode(node)
@@ -117,6 +153,8 @@ def getDCS_Greedy(originalGraphs):
     searchSpace = []
     for n in graphs[0].Nodes():
         searchSpace.append(n.GetId())
+    # Create a table of nodes by degree, to enable faster lookup.
+    initLookupTable(graphs)
 
     # Pass 1, to find the subgraph with the highest density.
     highestDensity = 0
@@ -145,6 +183,7 @@ def getDCS_Greedy(originalGraphs):
         graphs.append(snapGraphCopy.copyGraph(og))
     for g in graphs:
         subGraph(g, searchSpace)
+    initLookupTable(graphs)
 
     while graphs[0].GetNodes() > 1:
         # Is there a chance of some rounding error here? Comparing floats
@@ -155,12 +194,35 @@ def getDCS_Greedy(originalGraphs):
 
     # TODO: which edges should be in the returned graph? Should we return the
     # full graph set?
-    return graphs[0]
+    return (graphs[0], highestDensity)
 
+# Find the node with the smallest degree and remove it. Also update the lookup
+# table. Not only the removed node needs to be updated, also all nodes sharing
+# an edge with it.
 def removeSmallestDegreeNode(graphs):
     smallestNode = findSmallestDegree(graphs)
+    neighbors = getNeighbors(graphs, smallestNode)
+    removeFromLookupTable(graphs, smallestNode)
+    for n in neighbors:
+        removeFromLookupTable(graphs, n)
     for g in graphs:
         g.DelNode(smallestNode)
+    for n in neighbors:
+        addToLookupTable(graphs, n)
+
+# Return a list of all nodes connected to node, in any of the graphs.
+def getNeighbors(graphs, node):
+    neighbors = []
+    for g in graphs:
+        assert g.IsNode(node)
+        degree = g.GetNI(node).GetDeg()
+        for edgeNum in range(0, degree):
+            neighbor = g.GetNI(node).GetNbrNId(edgeNum)
+            if not neighbor in neighbors:
+                neighbors.append(neighbor)
+    #sys.stdout.write(str(node) + " neighbors ")
+    #print(neighbors)
+    return neighbors
 
 def printQuickStats(g):
     print(str(g.GetNodes()) + " nodes and " + str(g.GetEdges()) + " edges.")
@@ -179,13 +241,28 @@ def timer():
     return '%.1f seconds' % elapsedTime
 
 # Save the results to a snap graph file.
-# TODO: buggy. does not save the file.
-def saveResults(graph, runTime):
+# TODO: why does snap.SaveEdgeList not save the file?
+# TODO: what are we actually saving? Nodes, edges, density?
+def saveResults(graph, runTime, density):
     fileName = "greedy-out.tmp"
     print("Saving as " + fileName)
     description = "Densest subgraph by greedy algorithm, completed in " + runTime
-    snap.SaveEdgeList(graph, fileName)
     #snap.SaveEdgeList(graph, fileName, description)
+    # Write the nodes into a list so that they can be sorted.
+    nodeList = []
+    for n in graph.Nodes():
+        nodeList.append(n.GetId())
+    nodeList.sort()
+
+    f = open(fileName, 'w')
+    f.write('# Node list of the densest common subgraph of the following graphs:\n')
+    for arg in sys.argv[1:]:
+        f.write('#   ' + arg + '\n')
+    f.write('# Number of nodes: ' + str(len(nodeList)) + '\n')
+    f.write('# Density: ' + str(density) + '\n')
+    f.write('# Completed in ' + runTime + '\n')
+    for n in nodeList:
+        f.write(str(n) + '\n')
 
 if(len(sys.argv) < 2):
   sys.exit("Usage: python " + sys.argv[0] + " <file1> <file2> ...")
@@ -194,18 +271,21 @@ timer() # Start the timer.
 graphs = loadGraphs()
 print("Imported " + str(len(graphs)) + " graphs in " + timer())
 
-print("Preprocessing...")
-preprocess(graphs)
-# Make sure all graphs have the same amount of nodes. There could be a deeper
-# check here.
-for g in graphs:
-    assert g.GetNodes() == graphs[0].GetNodes()
-print(str(graphs[0].GetNodes()) + " nodes are common to all graphs")
-print("Preprocessing took " + timer())
+# If multiple graphs, do some preprocessing to make sure they are over the same
+# set of nodes.
+if len(graphs) > 1:
+    print("Preprocessing...")
+    preprocess(graphs)
+    # Make sure all graphs have the same amount of nodes.
+    # There could be a deeper check here.
+    for g in graphs:
+        assert g.GetNodes() == graphs[0].GetNodes()
+    print(str(graphs[0].GetNodes()) + " nodes are common to all graphs")
+    print("Preprocessing took " + timer())
 
-g2 = getDCS_Greedy(graphs)
+(g2, density) = getDCS_Greedy(graphs)
 runTime = timer()
 printQuickStats(g2)
 print("The greedy algorithm completed in " + runTime)
-saveResults(g2, runTime)
+saveResults(g2, runTime, density)
 
