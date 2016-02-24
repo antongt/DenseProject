@@ -1,7 +1,7 @@
 from lib import snap
 import sys
 import time
-import snapGraphCopy
+from lib import snapGraphCopy
 
 # Consider every argument after the first (which is the name of the executed
 # command) to be a graph file. Load them all and store them in a list.
