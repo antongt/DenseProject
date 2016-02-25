@@ -33,7 +33,7 @@ def printSingleGraph(Graph):
   for e in Graph.Edges():
     src = e.GetSrcNId()
     dst = e.GetDstNId()
-    xij = "x"+str(src)+str(dst)
+    xij = "x"+str(src)+"#"+str(dst)
     yi  = "y"+str(src)
     yj  = "y"+str(dst)
     edges.append(xij)
@@ -99,7 +99,7 @@ def printMoreGraphs(Graphs):
     for e in Graphs[g].Edges():
       src = e.GetSrcNId()
       dst = e.GetDstNId()
-      xij = "x"+str(g)+"_"+str(src)+str(dst)
+      xij = "x"+str(g)+"_"+str(src)+"#"+str(dst)
       yi  = "y"+str(src)
       yj  = "y"+str(dst)
       edges.append(xij)
