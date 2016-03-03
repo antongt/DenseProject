@@ -3,26 +3,23 @@ import sys;
 from os import walk;
 from os import path;
 
+asUnDir = False
 oneGraph = False
-fileList = []
 
 if(len(sys.argv) < 2):
   sys.exit("usage: python snap2lp.py <file1> ... <fileN>")
+
 if(len(sys.argv) == 2):
   if sys.argv[1] == "-d":
-    sys.exit("no input dir.")
+    sys.exit("no input.")
   oneGraph = True
-if(len(sys.argv) == 3 and sys.argv[1] == "-d"):
-  if(path.isdir(sys.argv[2])):
-    for (dirpath,dirname,filenames) in walk(sys.argv[2]):
-      fileList.extend(map (lambda x: path.join(dirpath,x), filenames))
-      break
-  else: sys.exit("dir not found")
 
-if(len(sys.argv) > 3):
-  if(sys.argv[1] == "-d"):
-    sys.exit("only 1 dir supported")
-  else: fileList = sys.argv[1:]
+if(len(sys.argv) == 3 and sys.argv[1] == "-d"):
+  asUnDir = True
+  oneGraph = True
+
+if(len(sys.argv) > 3 and sys.argv[1] == "-d"):
+  asUnDir = True
 
 
 def printSingleGraph(Graph):
@@ -86,8 +83,8 @@ def printMoreGraphs(Graphs):
   ng = 0
   print >> sys.stderr, "edges:\n"
   for g in range(0,len(Graphs)):
-    ng = ng + snap.CntUniqUndirEdges(Graphs[g])
-    print >> sys.stderr, snap.CntUniqUndirEdges(Graphs[g])
+    ng = ng + Graphs[g].GetEdges()
+    print >> sys.stderr, Graphs[g].GetEdges()
 
   print >> sys.stderr, ng
 ##### preprocessing end #####
@@ -126,10 +123,20 @@ def printMoreGraphs(Graphs):
 
 
 if(oneGraph):
-  Graph = snap.LoadEdgeList(snap.PUNGraph, sys.argv[1], 0, 1)
+  if(asUnDir):
+    Graph = snap.LoadEdgeList(snap.PNGraph, sys.argv[2], 0, 1)
+    snap.MakeUnDir(Graph)
+  else:
+    Graph = snap.LoadEdgeList(snap.PUNGraph, sys.argv[1], 0, 1)
   printSingleGraph(Graph)
 else:
   Graphs = []
-  for file in fileList:
-    Graphs.append(snap.LoadEdgeList(snap.PUNGraph, file, 0, 1))
+  if(asUnDir):
+    for file in sys.argv[2:]:
+      g = snap.LoadEdgeList(snap.PNGraph, file, 0, 1)
+      snap.MakeUnDir(g)
+      Graphs.append(g)
+  else:
+    for file in sys.argv[1:]:
+      Graphs.append(snap.LoadEdgeList(snap.PUNGraph, file, 0, 1))
   printMoreGraphs(Graphs)

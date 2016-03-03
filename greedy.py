@@ -13,6 +13,16 @@ def loadGraphs():
         printQuickStats(Graphs[len(Graphs)-1])
     return Graphs
 
+def loadDirGraphs():
+    Graphs = []
+    for arg in sys.argv[2:]:
+         g = snap.LoadEdgeList(snap.PNGraph, arg, 0, 1)
+         snap.MakeUnDir(g)
+         Graphs.append(g)
+         sys.stdout.write("Imported " + arg + ": ")
+         printQuickStats(Graphs[len(Graphs)-1])
+    return Graphs
+
 def preprocess(Graphs):
     ##### preprocessing start #####
     # TODO: clean up the preprocessing, possibly make it into a new function
@@ -241,9 +251,14 @@ def saveResults(graph, runTime, density):
 
 if(len(sys.argv) < 2):
   sys.exit("Usage: python " + sys.argv[0] + " <file1> <file2> ...")
+  
 
 timer() # Start the timer.
-graphs = loadGraphs()
+if(sys.argv[1] == "-d"):
+    graphs = loadDirGraphs()
+else:
+    graphs = loadGraphs()
+
 print("Imported " + str(len(graphs)) + " graphs in " + timer())
 
 # If multiple graphs, do some preprocessing to make sure they are over the same
