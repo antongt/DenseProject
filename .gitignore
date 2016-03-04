@@ -5,4 +5,7 @@
 *.tmp
 *.o
 *.pyc
+*.log
+*.trash
+*.lp
 *~*
