@@ -1,6 +1,7 @@
 from lib import snap
 import sys
 import time
+import gmpy2
 from lib import snapGraphCopy
 
 # Consider every argument after the first (which is the name of the executed
@@ -126,6 +127,12 @@ def density(g):
     else:
         return g.GetEdges()/float(g.GetNodes())
 
+def quasiClique(g):
+    if g.GetNodes() == 0:
+        return 0
+    else:
+        return g.GetEdges()/(0.334*gmpy2.comb(g.GetNodes(), 2))
+       
 # The density of a set of graphs is the minimum density among them.
 def densityMultiple(graphs):
     result = float("Infinity")
