@@ -122,7 +122,7 @@ def getMinDegree(graphs, node):
 
 # Calculate the average degree as density of a single graph.
 def density(g):
-    if g.GetNodes() == 0: # Avoid division by zero.
+    if g.GetNodes() == 0:  # Avoid division by zero.
         return 0
     else:
         return g.GetEdges()/float(g.GetNodes())
@@ -131,8 +131,13 @@ def quasiClique(g):
     if g.GetNodes() == 0:
         return 0
     else:
-        return g.GetEdges()/(0.334*gmpy2.comb(g.GetNodes(), 2))
-       
+        return g.GetEdges()-(0.334*gmpy2.comb(g.GetNodes(), 2))
+def Clique(g):
+    if g.GetNodes() == 0:
+        return 0
+    else:
+        return g.GetEdges()/gmpy2.comb(g.GetNodes(), 2)
+
 # The density of a set of graphs is the minimum density among them.
 def densityMultiple(graphs):
     result = float("Infinity")
