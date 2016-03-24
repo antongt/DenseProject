@@ -77,8 +77,8 @@ def findSmallestDegree(graphs):
     global takenTable
     global numberOfNodes
     degree = 0
-    while not numberOfNodes == 0:
-        if (len(lookupTable[degree]) == 0):
+    while True:
+        while (len(lookupTable[degree]) == 0):
             degree += 1
         smallestNode = lookupTable[degree].pop()
         if (not takenTable[smallestNode]):  # make takenTable hashtable or similar or create larger table
@@ -90,7 +90,7 @@ def getSmallestDegree(node):
     global degreeList
     deg = -1
     for n in range(0, len(degreeList)):
-        min(degreeList[n][node], deg)
+        deg = min(degreeList[n][node], deg)
     return deg
 
 # Create the data structure that is used in the function findSmallestDegree().
@@ -113,21 +113,14 @@ def initLookupTable(graphs):
             degreeList[g].append(0)
         numberOfEdges.append(graphs[g].GetEdges())
         for n in graphs[g].Nodes():
-            degreeList[g][n.GetId()]=(n.GetDeg())
-    for n in graphs[0].Nodes():
-        addToLookupTable(graphs, n.GetId())
+            degreeList[g][n.GetId()] = (n.GetDeg())
+            addToLookupTable(graphs, n.GetId(), n.GetDeg())
 
-def addToLookupTable(graphs, node):
+def addToLookupTable(graphs, node,degree):
     global lookupTable
-    degree = getMinDegree(graphs, node)
     while degree >= len(lookupTable):
         lookupTable.append([])
     lookupTable[degree].append(node)
-
-def newAppend(graphs, node):
-    global lookupTable
-    global degreeList
-
 
 def removeFromLookupTable(graphs, node):
     global lookupTable
@@ -155,28 +148,20 @@ def getMinDegree(graphs, node):
     return result
 
 # Calculate the average degree as density of a single graph.
-def density(g):
-    if g.GetNodes() == 0:  # Avoid division by zero.
-        return 0
-    else:
-        return g.GetEdges()/float(g.GetNodes())
-
-def newDensity(n):
+def density(n):
     global numberOfNodes
-    if numberOfNodes == 0:
-        return 0
-    else:
-        return numberOfEdges[n]/float(numberOfNodes)
-def quasiClique(g):
-    if g.GetNodes() == 0:
-        return 0
-    else:
-        return g.GetEdges()-(0.334*gmpy2.comb(g.GetNodes(), 2))
-def Clique(g):
-    if g.GetNodes() == 0:
-        return 0
-    else:
-        return g.GetEdges()/gmpy2.comb(g.GetNodes(), 2)
+    global numberOfEdges
+    return numberOfEdges[n]/float(numberOfNodes)
+
+def quasiClique(n):
+    global numberOfNodes
+    global numberOfEdges
+    return numberOfEdges[n]-(0.334*gmpy2.comb(numberOfNodes, 2))
+
+def Clique(n):
+    global numberOfNodes
+    global numberOfEdges
+    return numberOfEdges[n]/gmpy2.comb(numberOfNodes, 2)
 
 # The density of a set of graphs is the minimum density among them.
 def densityMultiple(graphs):
@@ -262,12 +247,11 @@ def updateLists(graphs, node):
     for g in range(0, len(graphs)):
         nodeObj = graphs[g].GetNI(node)
         degree = nodeObj.GetDeg()
-        numberOfEdges[g] -= degree
-        print(numberOfEdges[g])
+        numberOfEdges[g] -= degreeList[g][nodeObj.GetId()]
         for edgeNum in range(0, degree):
             neighbourNode = nodeObj.GetNbrNId(edgeNum)
             if not takenTable[neighbourNode]:
-                degreeList[g][neighbourNode] = 1
+                degreeList[g][neighbourNode] -= 1
                 lookupTable[degreeList[g][neighbourNode]].append(neighbourNode)
 
 # Return a list of all nodes connected to node, in any of the graphs.
@@ -336,20 +320,15 @@ print("Imported " + str(len(graphs)) + " graphs in " + timer())
 
 # If multiple graphs, do some preprocessing to make sure they are over the same
 # set of nodes.
-if len(graphs) == 1:
-    print("Only one graph, skipping preprocessing.")
-else:
-    print("Preprocessing...")
-    preprocess(graphs)
-    # Make sure all graphs have the same amount of nodes.
-    # There could be a deeper check here.
-    totalEdges = 0
-    for g in graphs:
-        assert g.GetNodes() == graphs[0].GetNodes()
-        totalEdges += g.GetEdges()
-    print(str(graphs[0].GetNodes()) + " nodes are common to all graphs")
-    print(str(totalEdges) + " total number of edges in all graphs")
-    print("Preprocessing took " + timer())
+# Make sure all graphs have the same amount of nodes.
+# There could be a deeper check here.
+totalEdges = 0
+for g in graphs:
+    assert g.GetNodes() == graphs[0].GetNodes()
+    totalEdges += g.GetEdges()
+print(str(graphs[0].GetNodes()) + " nodes are common to all graphs")
+print(str(totalEdges) + " total number of edges in all graphs")
+print("Preprocessing took " + timer())
 
 (g2, density) = getDCS_Greedy(graphs)
 runTime = timer()
