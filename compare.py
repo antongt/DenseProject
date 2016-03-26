@@ -4,12 +4,9 @@ import sys;
 import os
 import cplex;
 
-model = cplex.Cplex()
-
 def usage():
 	sys.exit("usage: python compare.py <SnapGraph1DCS_LP.txt> <SnapGraph1DCS_GREEDY.txt>")
 if(len(sys.argv) != 3):
-
 	usage()
 
 lpName,lpExt  = os.path.splitext(sys.argv[1])
@@ -32,12 +29,9 @@ eG=0.0
 # calc density for DCS_LP
 for n in lpG.Nodes():
 	nLP= nLP+1
-print("nodes: " +str(nLP))
 for e in lpG.Edges():
 	eLP = eLP+1
-print("edges: "+str(eLP))
 densityLP = eLP /  float(nLP)
-
 
 
 # calc density for DCS_GREEDY
@@ -46,10 +40,7 @@ for n in gG.Nodes():
 for e in gG.Edges():
 	eG = eG+1
 densityG = eG / float(nG)
-#print " lp: n:%d e:%d, greedy:  n:%d e:%d" %(nLP,eLP,nG,eG)
 
-
-#sys.exit()
 print "Approximate Diameter,		 DCS_LP: %d, DCS_GREEDY: %d" % (snap.GetBfsFullDiam(lpG, 10),snap.GetBfsFullDiam(gG,10))
 print "Clustering Coefficient,		 DCS_LP: %.3f, DCS_GREEDY: %.3f" %(snap.GetClustCf(lpG), snap.GetClustCf(gG))
 print "Density,			 DCS_LP: %.3f, DCS_GREEDY: %.3f" % (densityLP,densityG)
