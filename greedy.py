@@ -46,6 +46,7 @@ def preprocess(Graphs):
         w.Add(i)
 
     # update graph list with subgraph induced by common nodes.
+
     for g in Graphs:
         subGraph(g, u)
 
@@ -240,26 +241,37 @@ def timer():
 # Save the results to a snap graph file.
 # TODO: why does snap.SaveEdgeList not save the file?
 # TODO: what are we actually saving? Nodes, edges, density?
+def saveGraph(graph,name,description):
+    print("Saving graph to file "+ name)
+    snap.SaveEdgeList(graph, name, description)
 def saveResults(graph, runTime, density):
-    fileName = "greedy-out.tmp"
-    print("Saving as " + fileName)
-    description = "Densest subgraph by greedy algorithm, completed in " + runTime
-    #snap.SaveEdgeList(graph, fileName, description)
+    fileName = "DCS_GREEDY.log"
+    print("Saving as " + fileName + ". Please Change this name to something appropriate!")
+    print("Save file in results/log/")
+    description1 = "Densest subgraph by greedy algorithm, completed in " + runTime
     # Write the nodes into a list so that they can be sorted.
+    
+    edgeList = []
     nodeList = []
     for n in graph.Nodes():
         nodeList.append(n.GetId())
     nodeList.sort()
+    for e in graph.Edges():
+        edgeList.append("x_"+str(e.GetSrcNId())+"#"+str(e.GetDstNId()))
+    edgeList.sort()
+    
 
     f = open(fileName, 'w')
-    f.write('# Node list of the densest common subgraph of the following graphs:\n')
+    f.write('# Log file from DCS_GREEDY with following input graphs:\n')
     for arg in sys.argv[1:]:
         f.write('#   ' + arg + '\n')
     f.write('# Number of nodes: ' + str(len(nodeList)) + '\n')
     f.write('# Density: ' + str(density) + '\n')
     f.write('# Completed in ' + runTime + '\n')
     for n in nodeList:
-        f.write(str(n) + '\n')
+        f.write("y_"+str(n)+'\n')
+    for e in edgeList:
+        f.write(e+' \n')
 
 if(len(sys.argv) < 2):
   sys.exit("Usage: python " + sys.argv[0] + " <file1> <file2> ...")
@@ -289,7 +301,9 @@ else:
 
 (g2, density) = getDCS_Greedy(graphs)
 runTime = timer()
+saveGraph(g2,"DCS_GREEDY.txt","Greedy result graph")
 printQuickStats(g2)
+print("Returned type from g2: " + str(type(g2)))
 print("The greedy algorithm completed in " + runTime)
 saveResults(g2, runTime, density)
 
