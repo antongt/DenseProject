@@ -1,5 +1,5 @@
-# Undirected graph (each unordered pair of nodes is saved once): results/snap/oregon1-9DCS.txt
-# SnapGraph from logfileresults/log/oregon1
+# Undirected graph (each unordered pair of nodes is saved once): results/snap/oregon1-9LP.txt
+# SnapGraph from logfileresults/log/oregon1-9DCS_LP
 
 # Nodes: 76 Edges: 1145
 # NodeId	NodeId
