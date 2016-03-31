@@ -1,5 +1,7 @@
 from lib import snap;
 import sys;
+import os;
+import cplex;
 from os import walk;
 from os import path;
 
@@ -7,7 +9,7 @@ asUnDir = False
 oneGraph = False
 
 if(len(sys.argv) < 2):
-  sys.exit("usage: python snap2lp.py <file1> ... <fileN>")
+  sys.exit("usage: python lp.py [-d] <file1> ... <fileN>")
 
 if(len(sys.argv) == 2):
   if sys.argv[1] == "-d":
@@ -42,53 +44,19 @@ def printSingleGraph(Graph):
     yi = "y"+str(id)
     nodes.append(yi)
 
-  print "maximize"
-  print " +\n".join(edges) # sum xij
-  print "\nsubject to"
-  print (" +\n".join(nodes))+" <= 1" # sum yi <= 1
-  print " \n".join(edgeCons) # xij <= yi and xij <= yj
-  print "\nend"
+  with open("dense.lp", "w") as f:
+    print >> f, "maximize"
+    print >> f, " +\n".join(edges) # sum xij
+    print >> f, "\nsubject to"
+    print >> f, (" +\n".join(nodes))+" <= 1" # sum yi <= 1
+    print >> f, " \n".join(edgeCons) # xij <= yi and xij <= yj
+    print >> f, "\nend"
   return;
 
 def printMoreGraphs(Graphs):
   nodes = []
   allEdges = []
   allEdgeCons = []
-##### preprocessing start #####
-# TODO: clean up the preprocessing, possibly make it into a new function
-
-  v = []
-
-  # appends node set for all graphs to v.
-  for g in range(0,len(Graphs)):
-    a = []
-    for n in Graphs[g].Nodes():
-      a.append(n.GetId())
-    v.append(set(a))
-
-  # take the intersection, giving us all common nodes.
-  u = list(set.intersection(*v))
-
-  # converts to a snap-vector
-  w = snap.TIntV()
-  for i in u:
-    w.Add(i)
-
-  print >> sys.stderr, str(len(u))
-
-  # update graph list with subgraph induced by common nodes.
-  for g in range(0,len(Graphs)):
-    Graphs[g] = snap.GetSubGraph(Graphs[g],w)
-
-  ng = 0
-  print >> sys.stderr, "edges:\n"
-  for g in range(0,len(Graphs)):
-    ng = ng + Graphs[g].GetEdges()
-    print >> sys.stderr, Graphs[g].GetEdges()
-
-  print >> sys.stderr, ng
-##### preprocessing end #####
-
 
   for g in range(0,len(Graphs)):
     edges    = []
@@ -112,14 +80,15 @@ def printMoreGraphs(Graphs):
   # remove duplicates
   nodes = list(set(nodes))
 
-  print "maximize t"
-  print "\nsubject to"
-  print (" +\n".join(nodes))+" <= 1" # sum yi <= 1
-  for e in allEdges:
-    print (" +\n".join(e))+" - t >= 0" # sum xij >= t
-  for c in allEdgeCons:
-    print " \n".join(c) # xij <= yi and xij <= yj
-  print "\nend"
+  with open("dense.lp", "w") as f:
+    print >> f, "maximize t"
+    print >> f, "\nsubject to"
+    print >> f, (" +\n".join(nodes))+" <= 1" # sum yi <= 1
+    for e in allEdges:
+      print >> f, (" +\n".join(e))+" - t >= 0" # sum xij >= t
+    for c in allEdgeCons:
+      print >> f, " \n".join(c) # xij <= yi and xij <= yj
+    print >> f, "\nend"
 
 
 if(oneGraph):
@@ -140,3 +109,12 @@ else:
     for file in sys.argv[1:]:
       Graphs.append(snap.LoadEdgeList(snap.PUNGraph, file, 0, 1))
   printMoreGraphs(Graphs)
+
+
+dense = cplex.Cplex("dense.lp")
+os.remove("dense.lp")
+alg = dense.parameters.lpmethod.values
+dense.parameters.lpmethod.set(alg.barrier)
+dense.solve()
+
+print dense.solution.get_values()
