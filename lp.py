@@ -1,9 +1,7 @@
-from lib import snap;
-import sys;
-import os;
-import cplex;
-from os import walk;
-from os import path;
+from lib import snap
+import sys
+import os
+import cplex
 
 asUnDir = False
 oneGraph = False
@@ -116,5 +114,3 @@ os.remove("dense.lp")
 alg = dense.parameters.lpmethod.values
 dense.parameters.lpmethod.set(alg.barrier)
 dense.solve()
-
-print dense.solution.get_values()
