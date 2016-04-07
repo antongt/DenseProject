@@ -1,3 +1,5 @@
+# This is the dual of the LP for the finding of the densest subgraph.
+
 from lib import snap
 import sys
 import time
@@ -27,38 +29,37 @@ def loadDirGraphs():
 # of this script can be redirected to a file.
 def printDualLP(graphs):
     # Build a list of all the variables.
-    y = [] # nodes. common to all graphs.
-    x = [] # edges. one list for each graph.
+    primalVars = [] # xs, ys, t.
     for gi in range(0, len(graphs)):
-        x.append([])
-        for edge in graphs[gi].Edges():
-            x[gi].append((edge.GetSrcNId(), edge.GetDstNId()))
+        for e in graphs[gi].Edges():
+            varName = "x_"+str(gi)+"_"+str(e.GetSrcNId())+"_"+str(e.GetDstNId())
+            primalVars.append(varName)
         for node in graphs[gi].Nodes():
-            nid = node.GetId()
-            if not nid in y:
-                y.append(nid)
-    if(False):
-        print("X:")
-        for listnum in range(0, len(x)):
-            for xvar in x[listnum]:
-                print(str(listnum) + ", " + str(xvar[0]) + ", " + str(xvar[1]))
-        print("Y:")
-        for yvar in y:
-            print(str(yvar))
+            varName = "y_" + str(node.GetId())
+            if not varName in primalVars:
+                primalVars.append(varName)
+
     # The primal is a maximization problem, to this is a minimization.
     sys.stdout.write("minimize")
-    column = 1
-    first = True
+    # Write all the terms of the objective function.
+    # * Write a plus sign before every term except the first.
+    # * Write a newline after every maxColumns terms.
+    firstTerm = True
+    currentColumn = 1
+    maxColumns = 6
     for yvar in y:
-        if first:
-            first = False
-        else:
+        if not firstTerm:
             sys.stdout.write(" +")
+        else:
+            firstTerm = False
         sys.stdout.write(" y" + str(yvar))
-        column += 1
-        if column % 6 == 0: # Line break after every N terms.
+        currentColumn += 1
+        if currentColumn % maxColumns == 0:
             sys.stdout.write("\n")
     print(";")
+    # First set of constraints correspond to x_ij in each graph.
+    #for graphNum in range(0, len(x)):
+    #    for xvar in x[graphNum]:
 
     sys.stdout.write("\nend\n")
 
