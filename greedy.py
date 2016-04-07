@@ -1,8 +1,8 @@
 from lib import snap
 import sys
 import time
-import gmpy2
 from lib import snapGraphCopy
+from lib import binomial
 
 # Consider every argument after the first (which is the name of the executed
 # command) to be a graph file. Load them all and store them in a list.
@@ -132,12 +132,12 @@ def quasiClique(g):
     if g.GetNodes() == 0:
         return 0
     else:
-        return g.GetEdges()-(0.334*gmpy2.comb(g.GetNodes(), 2))
+        return g.GetEdges()-(0.334*binomial.coefficient(g.GetNodes(), 2))
 def Clique(g):
     if g.GetNodes() == 0:
         return 0
     else:
-        return g.GetEdges()/gmpy2.comb(g.GetNodes(), 2)
+        return g.GetEdges()/binomial.coefficient(g.GetNodes(), 2)
 
 # The density of a set of graphs is the minimum density among them.
 def densityMultiple(graphs):
