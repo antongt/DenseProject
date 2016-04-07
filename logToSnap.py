@@ -1,17 +1,7 @@
 import sys
 import os
 from lib import snap;
-# Converts a logfile of the form
-# 
-# y123 \n
-# y124 \n
-# x*_123#456 \n
-# x*_1#23456 \n
-# EOF
-#
-# to a snapgraph with snap.saveEdgeList()
-# where x*_from#to are edges and yNodeId are nodes
-
+# Converts a logfile with
 def usage(): 
   sys.exit("usage: python logToSnap.py <file.log> <resultGraph.txt>")
 if(len(sys.argv) != 3):
@@ -38,4 +28,4 @@ for line in input:
       g.AddEdge(int(fr_to[0]),int(fr_to[1]))
 snap.SaveEdgeList(g, sys.argv[2], "SnapGraph from logfile"+cName+"\n")
 input.close()
-print("cplexToSnap Completed.")
+print("logToSnap Completed.")
