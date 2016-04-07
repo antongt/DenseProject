@@ -58,6 +58,22 @@ def preprocess(Graphs):
 
     ##### preprocessing end #####
 
+
+# If multiple graphs, do some preprocessing to make sure they are over the same
+# set of nodes.
+# Make sure all graphs have the same amount of nodes.
+# There could be a deeper check here.
+def simplePreprocessing(graphs):
+    global numberOfNodes
+    numberOfNodes = graphs[0].GetNodes()
+    totalEdges = 0
+    for g in graphs:
+        #assert g.GetNodes() == numberOfNodes
+        totalEdges += g.GetEdges()
+    print(str(numberOfNodes) + " nodes are common to all graphs")
+    print(str(totalEdges) + " total number of edges in all graphs")
+
+
 # Make g into an induced subgraph of g, removing all nodes that are not in v.
 # Keep the list of nodes to remove in a list to avoid removing while iterating
 # over the graph.
@@ -167,7 +183,7 @@ def Clique(n):
 def densityMultiple(graphs):
     result = float("Infinity")
     for g in range(0, len(graphs)):
-        result = min(result, newDensity(g))
+        result = min(result, density(g))
     return result
 
 # Print progress bar based on size of the graph (it is reduced to zero nodes).
@@ -317,17 +333,8 @@ else:
     graphs = loadGraphs()
 
 print("Imported " + str(len(graphs)) + " graphs in " + timer())
-
-# If multiple graphs, do some preprocessing to make sure they are over the same
-# set of nodes.
-# Make sure all graphs have the same amount of nodes.
-# There could be a deeper check here.
-totalEdges = 0
-for g in graphs:
-    assert g.GetNodes() == graphs[0].GetNodes()
-    totalEdges += g.GetEdges()
-print(str(graphs[0].GetNodes()) + " nodes are common to all graphs")
-print(str(totalEdges) + " total number of edges in all graphs")
+# Don't remove, this isn't the deep preprocessing that takes time.
+simplePreprocessing(graphs)
 print("Preprocessing took " + timer())
 
 (g2, density) = getDCS_Greedy(graphs)
