@@ -4,64 +4,142 @@ import os
 import cplex
 
 if(len(sys.argv) < 2):
-  sys.exit("usage: python lan.py <file1> ... <fileN>")
+  sys.exit("usage: python lag.py <file1> ... <fileN>")
 
-def printSingleGraph(Graph, filename="lp.lp"):
-  edges = []
+def printGraphs(Graphs):
   nodes = []
-  edgeCons = []
+  global allEdges
+  allEdges = []
+  allEdgeCons = []
 
-  for e in Graph.Edges():
-    src = e.GetSrcNId()
-    dst = e.GetDstNId()
-    xij = "x"+str(src)+"#"+str(dst)
-    yi  = "y"+str(src)
-    yj  = "y"+str(dst)
-    edges.append(xij)
-    edgeCons.append(xij+" - "+yi+" <= 0")
-    edgeCons.append(xij+" - "+yj+" <= 0")
+  for g in range(0,len(Graphs)):
+    edges    = []
+    edgeCons = []
+    for e in Graphs[g].Edges():
+      src = e.GetSrcNId()
+      dst = e.GetDstNId()
+      xij = "x"+str(g)+"_"+str(src)+"#"+str(dst)
+      yi  = "y"+str(src)
+      yj  = "y"+str(dst)
+      edges.append(xij)
+      edgeCons.append(xij+" - "+yi+" <= 0")
+      edgeCons.append(xij+" - "+yj+" <= 0")
+    for n in Graphs[g].Nodes():
+      id = n.GetId()
+      yi = "y"+str(id)
+      nodes.append(yi)
+    allEdges.append(edges)
+    allEdgeCons.append(edgeCons)
 
-  for n in Graph.Nodes():
-    id = n.GetId()
-    yi = "y"+str(id)
-    nodes.append(yi)
+  # remove duplicates
+  nodes = list(set(nodes))
+  
+  tcof = 1-(1*len(Graphs))
+  tobj = str(tcof)+"t"
 
-  with open(filename, "w") as f:
-    print >> f, "maximize"
-    print >> f, " +\n".join(edges) # sum xij
+  global xijm 
+  xijm = [e for es in allEdges for e in es]
+
+  with open("dense.lp", "w") as f:
+    print >> f, "maximize "+tobj+" +"
+    print >> f, " +\n".join(xijm)
     print >> f, "\nsubject to"
     print >> f, (" +\n".join(nodes))+" <= 1" # sum yi <= 1
-    print >> f, " \n".join(edgeCons) # xij <= yi and xij <= yj
+    for c in allEdgeCons:
+      print >> f, " \n".join(c) # xij <= yi and xij <= yj
     print >> f, "\nend"
-  return;
+
 
 Graphs = []
-nameList = []
-i = 0
+
 for file in sys.argv[1:]:
-  g = snap.LoadEdgeList(snap.PUNGraph, file, 0, 1)
-  Graphs.append(g)
-  lpName = "lp_"+str(i)+".lp"
-  nameList.append(lpName)
-  printSingleGraph(g, lpName)
-  i+=1
+  Graphs.append(snap.LoadEdgeList(snap.PUNGraph, file, 0, 1))
+printGraphs(Graphs)
 
-print nameList
+# index for all x's are 1-len(xijm), in cplex.
+print "total number of edges:" + str(len(xijm))
 
-totaltime = 0
-denseList = []
-for file in nameList:
-  dense = cplex.Cplex(file)
-  os.remove(file)
-  alg = dense.parameters.lpmethod.values
-  dense.parameters.lpmethod.set(alg.barrier)
-  start = dense.get_time()
-  dense.solve()
-  end = dense.get_time()
-  totaltime += (end - start)
-  density = dense.solution.get_objective_value()
-  denseList.append(density)
 
-print denseList
-print "solution: "+str(min(denseList))
-print "total solve time: "+str(totaltime)+" sec."
+dense0 = cplex.Cplex("dense.lp")
+dense0.set_results_stream(None)
+alg = dense0.parameters.lpmethod.values
+dense0.parameters.lpmethod.set(alg.barrier)
+start_time0 = dense0.get_time()
+dense0.solve()
+end_time0 = dense0.get_time()
+
+iter0_time = end_time0 - start_time0
+
+prev_t    = dense0.solution.get_values(0)
+prev_xijm = dense0.solution.get_values(range(1,len(xijm)+1))
+prev_val  = dense0.solution.get_objective_value()
+
+print "Iteration 0 ("+str(iter0_time)+" sec.): " + str(prev_val)
+
+# initial value of all lamdas are -1.
+lamda = [-1]*len(Graphs)
+
+times = []
+times.append(iter0_time)
+
+for j in range(1,5):
+  with cplex.Cplex("dense.lp") as dense:
+
+    #remove all output from cplex:
+    dense.set_results_stream(None)
+
+    #calculate (sub)gradients:
+    grads = []
+    start = 1
+    for i in range(0,len(lamda)):
+      # split up prev_xijm
+      end = start+len(allEdges[i])
+      prev_xijm_sum = sum(prev_xijm[start:end])
+      grad = prev_t - prev_xijm_sum
+      grads.append(grad)
+      start = end
+
+    #calculate stepsize:
+    scalar = 0.5 # TODO: half when no progress.
+    UB = prev_val
+    LB = 11.98 # TODO: get from greedy.
+    numer = scalar * (UB - LB)
+    denom = sum([grad * grad for grad in grads])
+    stepsize = numer / denom
+
+    #update lamda:
+    for i in range(0,len(lamda)):
+      lamda[i] = lamda[i] - stepsize * grads[i]
+
+    #modify LP with new lamdas:
+    new_obj = []
+    start = 1
+    for i in range(0,len(lamda)):
+      end = start+len(allEdges[i])
+      indexs = range(start, end)
+      coef = lamda[i] * (-1)
+      new_obj += [ (ind, coef) for ind in indexs ]
+      start = end
+
+    dense.objective.set_linear(0, 1+sum(lamda))
+    dense.objective.set_linear(new_obj)
+
+    alg = dense.parameters.lpmethod.values
+    dense.parameters.lpmethod.set(alg.barrier)
+    start_time = dense.get_time()
+    dense.solve()
+    end_time = dense.get_time()
+
+    iter_time = end_time - start_time
+    times.append(iter_time)
+
+    #TODO: check if feasible, if not divide the scalar by 2.
+
+    prev_t    = dense.solution.get_values(0)
+    prev_xijm = dense.solution.get_values(range(1,len(xijm)))
+    prev_val  = dense.solution.get_objective_value()
+    
+    print "Iteration "+str(j)+" ("+str(iter_time)+" sec.): "+str(prev_val)
+
+total_time = sum(times)
+print "Total time: " + str(total_time) + " sec."

@@ -90,22 +90,12 @@ def printMoreGraphs(Graphs):
 
 
 if(oneGraph):
-  if(asUnDir):
-    Graph = snap.LoadEdgeList(snap.PNGraph, sys.argv[2], 0, 1)
-    snap.MakeUnDir(Graph)
-  else:
-    Graph = snap.LoadEdgeList(snap.PUNGraph, sys.argv[1], 0, 1)
+  Graph = snap.LoadEdgeList(snap.PUNGraph, sys.argv[1], 0, 1)
   printSingleGraph(Graph)
 else:
   Graphs = []
-  if(asUnDir):
-    for file in sys.argv[2:]:
-      g = snap.LoadEdgeList(snap.PNGraph, file, 0, 1)
-      snap.MakeUnDir(g)
-      Graphs.append(g)
-  else:
-    for file in sys.argv[1:]:
-      Graphs.append(snap.LoadEdgeList(snap.PUNGraph, file, 0, 1))
+  for file in sys.argv[1:]:
+    Graphs.append(snap.LoadEdgeList(snap.PUNGraph, file, 0, 1))
   printMoreGraphs(Graphs)
 
 
