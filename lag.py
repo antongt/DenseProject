@@ -65,7 +65,7 @@ print "         lowerbound variable of the stepsize to fit"
 print "         with the result of running greedy on you graphs.\n"
 print "Warning: Could give infeasible solutions if the scalar of"
 print "         the stepsize is too large.\n"
-print "Warning: Only does 6 iterations.\n"
+print "Warning: Only does 5 iterations.\n"
 print "Info: total number of edges:" + str(len(xijm))
 
 
