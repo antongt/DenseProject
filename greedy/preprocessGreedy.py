@@ -61,15 +61,24 @@ def preprocess(Graphs):
 # Make sure all graphs have the same amount of nodes.
 # There could be a deeper check here.
 def simplePreprocessing(graphs):
-    numberOfNodes = 0;
     totalEdges = 0
+    nodes = []
+    maxNode = 0
+    numberOfNodes = 0
     for g in graphs:
+        maxNode = max(maxNode,g.GetMxNId())
         # assert g.GetNodes() == numberOfNodes
-        numberOfNodes = max(numberOfNodes,g.GetNodes())
         totalEdges += g.GetEdges()
-    print(str(numberOfNodes) + " nodes are common to all graphs")
+    for i in range(0,maxNode):
+        nodes.append(True)
+    for g in graphs:
+        for n in g.Nodes():
+            if (nodes[n.GetId()]):
+                nodes[n.GetId()] = False
+                numberOfNodes +=1
+    print(str(numberOfNodes) + " nodes are common to all graphs, maybe :D")
     print(str(totalEdges) + " total number of edges in all graphs")
-    return numberOfNodes
+    return(numberOfNodes)
 
 # Make g into an induced subgraph of g, removing all nodes that are not in v.
 # Keep the list of nodes to remove in a list to avoid removing while iterating
