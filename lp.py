@@ -3,24 +3,13 @@ import sys
 import os
 import cplex
 
-asUnDir = False
 oneGraph = False
 
 if(len(sys.argv) < 2):
-  sys.exit("usage: python lp.py [-d] <file1> ... <fileN>")
+  sys.exit("usage: python lp.py <file1> ... <fileN>")
 
 if(len(sys.argv) == 2):
-  if sys.argv[1] == "-d":
-    sys.exit("no input.")
   oneGraph = True
-
-if(len(sys.argv) == 3 and sys.argv[1] == "-d"):
-  asUnDir = True
-  oneGraph = True
-
-if(len(sys.argv) > 3 and sys.argv[1] == "-d"):
-  asUnDir = True
-
 
 def printSingleGraph(Graph):
   edges = []
@@ -89,6 +78,9 @@ def printMoreGraphs(Graphs):
     print >> f, "\nend"
 
 
+print "Warning: This file assumes already preprocessed files,"
+print "         meaning the input should be undirected and"
+print "         all node-sets should be equal, see preprocess.py.\n"
 if(oneGraph):
   Graph = snap.LoadEdgeList(snap.PUNGraph, sys.argv[1], 0, 1)
   printSingleGraph(Graph)

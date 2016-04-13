@@ -57,7 +57,16 @@ for file in sys.argv[1:]:
 printGraphs(Graphs)
 
 # index for all x's are 1-len(xijm), in cplex.
-print "total number of edges:" + str(len(xijm))
+print "Warning: This file assumes already preprocessed files,"
+print "         meaning the input should be undirected and"
+print "         all node-sets should be equal, see preprocess.py.\n"
+print "Warning: Only run on oregon-1, alternativly change the"
+print "         lowerbound variable of the stepsize to fit"
+print "         with the result of running greedy on you graphs.\n"
+print "Warning: Could give infeasible solutions if the scalar of"
+print "         the stepsize is too large.\n"
+print "Warning: Only does 6 iterations.\n"
+print "Info: total number of edges:" + str(len(xijm))
 
 
 dense0 = cplex.Cplex("dense.lp")
@@ -143,3 +152,5 @@ for j in range(1,5):
 
 total_time = sum(times)
 print "Total time: " + str(total_time) + " sec."
+
+os.remove("dense.lp")
