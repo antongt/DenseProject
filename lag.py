@@ -112,7 +112,7 @@ for j in range(1,100):
       start = end
     print scalar
     #calculate stepsize:
-    UB = min(12.03, prev_val)
+    UB = prev_val
     LB = 11.98 # TODO: get from greedy.
     numer = scalar * (UB - LB)
     denom = sum([grad * grad for grad in grads])
