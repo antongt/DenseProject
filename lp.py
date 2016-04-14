@@ -95,4 +95,5 @@ dense = cplex.Cplex("dense.lp")
 os.remove("dense.lp")
 alg = dense.parameters.lpmethod.values
 dense.parameters.lpmethod.set(alg.barrier)
+dense.parameters.barrier.crossover.set(dense.parameters.barrier.crossover.values.none)
 dense.solve()
