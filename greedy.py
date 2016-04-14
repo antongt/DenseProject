@@ -23,8 +23,11 @@ numberOfNodes = preprocessGreedy.simplePreprocessing(graphs)
 
 print("Preprocessing took " + utils.timer())
 startTime = time.clock()
-(density) = DCSGreedy.getDCS_Greedy(graphs,numberOfNodes)
+(nodes,density) = DCSGreedy.getDCS_Greedy(graphs,numberOfNodes)
 runTime = time.clock()-startTime
+
+utils.saveResults(nodes,str(runTime) + " seconds",density)
+
 # printQuickStats(g2)
 print("The greedy algorithm completed in " + str(runTime) + " seconds")
 #saveResults(g2, runTime, density)

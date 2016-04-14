@@ -66,12 +66,12 @@ def densityMultiple(graphs):
 
 
 # Get the densest common subgraph using the greedy algorithm.
-def getDCS_Greedy(originalGraphs,numNodes):
+def getDCS_Greedy(originalGraphs,nodes):
     # Don't touch any of the original graphs, caller may use them further.
     graphs = []
     global numberOfNodes
     global numberOfEdges
-    numberOfNodes = numNodes
+    numberOfNodes = len(nodes)
     for og in originalGraphs:
         graphs.append(snapGraphCopy.copyGraph(og))
     # Create a table of nodes by degree, to enable faster lookup.
@@ -100,8 +100,11 @@ def getDCS_Greedy(originalGraphs,numNodes):
         node = takeSmallestDegree(graphs)
         numberOfNodes -=1
         updateLists(graphs,node)
+
+    nodesInSubGraph = getNodesInSubGraph(nodes)
     print("second pass took: " + str(utils.timer()))
-    return (highestDensity)
+    print("we found a total number of nodes = " + str(optimalNumberOfNodes))
+    return (nodesInSubGraph,highestDensity)
 
 def updateLists(graphs, node):
     global takenTable
@@ -130,3 +133,11 @@ def getNeighbors(graphs, node):
             if not neighbor in neighbors:
                 neighbors.append(neighbor)
     return neighbors
+
+def getNodesInSubGraph(nodes):
+    global takenTable
+    exists = []
+    for i in nodes:
+        if not takenTable[i]:
+            exists.append(i)
+    return exists
