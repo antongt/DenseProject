@@ -1,4 +1,5 @@
 import time
+import sys
 
 
 # A function to measure how long something takes to run.
@@ -41,16 +42,11 @@ def printLookupTable():
 # Save the results to a snap graph file.
 # TODO: why does snap.SaveEdgeList not save the file?
 # TODO: what are we actually saving? Nodes, edges, density?
-def saveResults(graph, runTime, density):
+def saveResults(nodeList, runTime, density):
     fileName = "greedy-out.tmp"
     print("Saving as " + fileName)
     description = "Densest subgraph by greedy algorithm, completed in " + runTime
     #snap.SaveEdgeList(graph, fileName, description)
-    # Write the nodes into a list so that they can be sorted.
-    nodeList = []
-    for n in graph.Nodes():
-        nodeList.append(n.GetId())
-    nodeList.sort()
 
     f = open(fileName, 'w')
     f.write('# Node list of the densest common subgraph of the following graphs:\n')

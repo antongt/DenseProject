@@ -63,6 +63,7 @@ def preprocess(Graphs):
 def simplePreprocessing(graphs):
     totalEdges = 0
     nodes = []
+    nodesToSend = []
     maxNode = 0
     numberOfNodes = 0
     for g in graphs:
@@ -75,10 +76,12 @@ def simplePreprocessing(graphs):
         for n in g.Nodes():
             if (nodes[n.GetId()]):
                 nodes[n.GetId()] = False
+                nodesToSend.append(n.GetId())
                 numberOfNodes +=1
     print(str(numberOfNodes) + " nodes are common to all graphs, maybe :D")
     print(str(totalEdges) + " total number of edges in all graphs")
-    return(numberOfNodes)
+    print("length of nodes = " + str(len(nodes)))
+    return(nodesToSend)
 
 # Make g into an induced subgraph of g, removing all nodes that are not in v.
 # Keep the list of nodes to remove in a list to avoid removing while iterating
