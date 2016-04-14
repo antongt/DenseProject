@@ -92,12 +92,14 @@ lamda = [-1]*len(Graphs)
 times = []
 times.append(iter0_time)
 
-for j in range(1,9):
+scalar = 2.0
+for j in range(1,100):
   with cplex.Cplex("dense.lp") as dense:
 
     #remove all output from cplex:
     dense.set_results_stream(None)
 
+    oldlamda = lamda[:]
     #calculate (sub)gradients:
     grads = []
     start = 1
@@ -108,9 +110,8 @@ for j in range(1,9):
       grad = prev_t - prev_xijm_sum
       grads.append(grad)
       start = end
-
+    print scalar
     #calculate stepsize:
-    scalar = 0.555 # TODO: half when no progress.
     UB = prev_val
     LB = 11.98 # TODO: get from greedy.
     numer = scalar * (UB - LB)
@@ -146,11 +147,16 @@ for j in range(1,9):
 
     #TODO: check if feasible, if not divide the scalar by 2.
 
-    prev_t    = dense.solution.get_values(0)
-    prev_xijm = dense.solution.get_values(range(1,len(xijm)))
-    prev_val  = dense.solution.get_objective_value()
+    if(dense.solution.get_status() == dense.solution.status.infeasible_or_unbounded):
+      print "infeasible solution."
+      scalar = scalar * 0.8
+      lamda = oldlamda[:]
+    else: 
+      prev_t    = dense.solution.get_values(0)
+      prev_xijm = dense.solution.get_values(range(1,len(xijm)))
+      prev_val  = dense.solution.get_objective_value()
     
-    print "Iteration "+str(j)+" ("+str(iter_time)+" sec.): "+str(prev_val)
+      print "Iteration "+str(j)+" ("+str(iter_time)+" sec.): "+str(prev_val)
 
 total_time = sum(times)
 print "Total time: " + str(total_time) + " sec."
