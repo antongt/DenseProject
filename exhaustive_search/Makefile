@@ -2,9 +2,9 @@ CC=g++
 CC_OPTS=-Wall -O2
 LIBS=
 INC_PATH=
-TARGET=exhaust
+TARGET=exhaust_server
 RM=rm -f
-OBJS=main.o
+OBJS=main.o problem.o
 
 all: $(TARGET)
 
