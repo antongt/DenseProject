@@ -92,7 +92,7 @@ lamda = [-1]*len(Graphs)
 times = []
 times.append(iter0_time)
 
-scalar = 2.0
+scalar = 1.0
 for j in range(1,100):
   with cplex.Cplex("dense.lp") as dense:
 
@@ -149,7 +149,7 @@ for j in range(1,100):
 
     if(dense.solution.get_status() == dense.solution.status.infeasible_or_unbounded):
       print "infeasible solution."
-      scalar = scalar * 0.8
+      scalar = scalar * 0.5
       lamda = oldlamda[:]
     else: 
       prev_t    = dense.solution.get_values(0)

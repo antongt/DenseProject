@@ -2,6 +2,7 @@ from lib import snap
 import sys
 import os
 import cplex
+from greedy import DCSGreedy
 
 oneGraph = False
 
@@ -41,7 +42,10 @@ def printSingleGraph(Graph):
   return;
 
 def printMoreGraphs(Graphs):
+  global nodes
   nodes = []
+  global nodeVars
+  nodeVars = []
   allEdges = []
   allEdgeCons = []
 
@@ -60,17 +64,19 @@ def printMoreGraphs(Graphs):
     for n in Graphs[g].Nodes():
       id = n.GetId()
       yi = "y"+str(id)
-      nodes.append(yi)
+      nodeVars.append(yi)
+      nodes.append(id)
     allEdges.append(edges)
     allEdgeCons.append(edgeCons)
 
   # remove duplicates
   nodes = list(set(nodes))
+  nodeVars = list(set(nodeVars))
 
   with open("dense.lp", "w") as f:
     print >> f, "maximize t"
     print >> f, "\nsubject to"
-    print >> f, (" +\n".join(nodes))+" <= 1" # sum yi <= 1
+    print >> f, (" +\n".join(nodeVars))+" <= 1" # sum yi <= 1
     for e in allEdges:
       print >> f, (" +\n".join(e))+" - t >= 0" # sum xij >= t
     for c in allEdgeCons:
@@ -81,19 +87,28 @@ def printMoreGraphs(Graphs):
 print "Warning: This file assumes already preprocessed files,"
 print "         meaning the input should be undirected and"
 print "         all node-sets should be equal, see preprocess.py.\n"
+Graphs = []
+
 if(oneGraph):
   Graph = snap.LoadEdgeList(snap.PUNGraph, sys.argv[1], 0, 1)
   printSingleGraph(Graph)
 else:
-  Graphs = []
   for file in sys.argv[1:]:
     Graphs.append(snap.LoadEdgeList(snap.PUNGraph, file, 0, 1))
   printMoreGraphs(Graphs)
 
-
+print "solving greedy:\n"
+(subnodes, density) = DCSGreedy.getDCS_Greedy(Graphs, nodes)
+print subnodes
+print density
 dense = cplex.Cplex("dense.lp")
 os.remove("dense.lp")
 alg = dense.parameters.lpmethod.values
 dense.parameters.lpmethod.set(alg.barrier)
 dense.parameters.barrier.crossover.set(dense.parameters.barrier.crossover.values.none)
 dense.solve()
+vals = dense.solution.get_values(nodeVars)
+
+with open("lpsol.lp", "w") as f:
+  for i in range(len(vals)):
+    print >> f, nodeVars[i]+","+str(vals[i])
