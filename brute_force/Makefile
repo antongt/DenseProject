@@ -2,7 +2,7 @@ CC=g++
 CC_OPTS=-Wall -O2
 LIBS=
 INC_PATH=
-TARGET=exhaust_server
+TARGET=brute
 RM=rm -f
 OBJS=main.o problem.o
 

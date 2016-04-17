@@ -23,8 +23,12 @@ int main(int argc, char** argv)
     Problem *problem = new Problem();
 
     // Do some initial checks to see that everything(?) is in order.
-    if( (!problem->checkBitvectorSize()) || (!checkCommandLineArgs(argc)) ) {
-        std::cerr << "Exiting." << std::endl;
+    if( !checkBigEnoughIntegers()) {
+        std::cerr << "This architecture or compiler does not have large "
+            << "enough integers for this program to run." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if( !checkCommandLineArgs(argc) ) {
         exit(EXIT_FAILURE);
     }
 
@@ -38,6 +42,8 @@ int main(int argc, char** argv)
         }
     }
     std::cout << problem->getNumGraphs() << " read successfully." << std::endl;
+    problem->solve();
+    delete problem;
 }
 
 /*
