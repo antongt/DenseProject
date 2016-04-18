@@ -193,8 +193,24 @@ void Problem::solve()
     std::cout << "Largest density found was " << bestDensity;
     std::cout << " for solution " << bestSolution << std::endl;
     std::cout << "This solution includes the following nodes:" << std::endl;
+    printNodesInSolution(bestSolution);
+}
+
+/*
+ * Given a solution, translate those indexes back to ids in the original input
+ * files and print a sorted column of all the nodes in that solution.
+ */
+void Problem::printNodesInSolution(nodeSet solution)
+{
+    std::vector<int> nodeVec;
+    // Add nodes to the vector.
     for(int i=0; i<numNodes; ++i)
-        if(isNodeInSolution(i, bestSolution))
-            std::cout << nodeIds[i] << std::endl;
+        if(isNodeInSolution(i, solution))
+            nodeVec.push_back(nodeIds[i]);
+    // Sort the vector.
+    std::sort(nodeVec.begin(), nodeVec.end());
+    // Print the ids.
+    for(std::vector<int>::iterator it=nodeVec.begin(); it!=nodeVec.end(); ++it)
+        std::cout << *it << std::endl;
 }
 

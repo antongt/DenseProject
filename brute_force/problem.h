@@ -6,6 +6,8 @@
 #include <sstream>
 #include <climits>
 #include <bitset>
+#include <vector>
+#include <algorithm>
 
 // The maximum numbers of nodes and graphs are hardcoded.
 #define MAXNUMNODES 32
@@ -65,6 +67,9 @@ private:
 
     // Get the number of edges in a specific solution and edge set.
     int getNumEdges(nodeSet solution, int edgeSetNum);
+
+    // Print the nodes in the solution. Converts index->id and sorts.
+    void printNodesInSolution(nodeSet solution);
 
     // The input graphs may not have nodes numbered 0,1,2,3,...
     // They must be renumbered and this map remembers the original id for
