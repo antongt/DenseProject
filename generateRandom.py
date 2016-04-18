@@ -3,65 +3,87 @@
 # the same set of nodes.
 
 import os
+import sys
 import math
 import random
 from lib import snap
 from optparse import OptionParser
-from lib import snapGraphCopy
+#from lib import snapGraphCopy
 
 
 def main():
   printUsageSummary()
   (options, args) = parseArguments()
+  if options.cliqueSize == -1:
+    options.cliqueSize = options.numNodes/2
   print("graphs: " + str(options.numGraphs))
   print("nodes: " + str(options.numNodes))
+  print("clique size: " + str(options.cliqueSize))
 
   directory = createNewDir()
 
-  # Create a base graph. This will make sure the graphs have something
-  # in common.
-  baseGraph = snap.GenRndGnm(snap.PUNGraph, options.numNodes, 3*options.numNodes)
+  # Create a clique. This will make sure the graphs have something
+  # in common and that the optimal solution is not the entire graph.
+  nodesInClique = createCliqueNodes(options.numNodes, options.cliqueSize)
+  print 'Clique: ', nodesInClique
+
   # The files will be called 01.txt, 02.txt and so on. How many zeroes
   # we need to pad with depends on the number of files to have room for
   # the largest number.
   fieldWidth = int(1 + math.floor(math.log10(options.numGraphs)))
+
+  # For as many graphs as we need, create a minimal randomized connected
+  # graph, then add the edges from the clique previously created to it,
+  # and save to a file.
   for g in range(0, options.numGraphs):
-    #graph = snap.TUNGraph.New(options.numNodes, options.numNodes)
-    graph = snapGraphCopy.copyGraph(baseGraph)
-    createHotSpot(graph, graph.GetRndNId(), 3, 10)
+    graph = snap.TUNGraph.New(options.numNodes, options.numNodes)
+    createConnectedGraph(graph, options.numNodes)
+    addCliqueToGraph(graph, nodesInClique)
     fileName = os.path.join(directory, str(1+g).zfill(fieldWidth) + ".txt")
     snap.SaveEdgeList(graph, fileName)
 
-# In graph, create a hotspot of edges near node, within a distance of
-# diameter. Add a total of specified number of edges.
-def createHotSpot(graph, node, diameter, edges):
-  for i in range(0, edges):
-    # Pick random number of jumps, but stay within diameter.
-    # TODO: Is it supposed to be half diameter? Do we need to subtract 1
-    # to account for the edge as well?
-    numHops = random.randrange(diameter)
-    for j in range(0, numHops):
-      node = hop(graph, node)
-    addRandomEdge(graph, node)
+
+# Defines a clique by randomly picking a number of nodes equal to size, from
+# the range [1, numNodes]. This function does not add any edges or manipulates
+# any graph, it simply selects the nodes and returns them as a list.
+def createCliqueNodes(numNodes, size):
+  if size>numNodes:
+    print >> sys.stderr, '\nError: Can\'t create clique larger than the number of nodes in the graph.'
+    sys.exit(1)
+  nodes = []
+  while len(nodes) < size:
+    r = random.randrange(1, numNodes+1)
+    if nodes.count(r) == 0:
+      nodes.append(r)
+  return nodes
 
 
-# Jump from one node to a random neighbor. Returns the new node.
-def hop(graph, nodeId):
-  node = graph.GetNI(nodeId)
-  neighborId = node.GetOutNId(random.randrange(node.GetDeg()))
-  return neighborId
+# Create a clique from the nodes in cliqueNodes, in the given graph.
+def addCliqueToGraph(graph, cliqueNodes):
+  for a in range(1, len(cliqueNodes)-1):
+    for b in range(a+1, len(cliqueNodes)):
+      if not graph.IsEdge(a, b):
+        graph.AddEdge(a, b)
 
 
-# Adds an edge to the graph, with one end on node and the other on
-# a random neighbor. Will make a few attempts, trying again if the
-# edge already exists.
-def addRandomEdge(graph, fromNode):
-  toNode = graph.GetRndNId()
-  attempts = 10
-  while attempts > 0 and graph.IsEdge(fromNode, toNode):
-    toNode = graph.GetRndNId()
-    attempts -= 1
-  graph.AddEdge(fromNode, toNode)
+# Given an empty snap graph and a number of nodes N, modify the graph so that
+# it is a randomized connected graph with the minimum (N-1) number of edges.
+#
+# The graph is created with the following algorithm:
+# Initialize a list of all nodes except node 1.
+# Add node 1 to the graph.
+# While the list of nodes is not empty:
+#   Randomly pick a node n1 from the graph.
+#   Arbitrary pick a node n2 in the list of nodes. Remove it from the list.
+#   Create an edge between n1 and n2.
+def createConnectedGraph(graph, numNodes):
+  unaddedNodes = range(2, numNodes+1)
+  graph.AddNode(1)
+  while len(unaddedNodes) > 0:
+    fromId = graph.GetRndNId()
+    toId = unaddedNodes.pop()
+    graph.AddNode(toId)
+    graph.AddEdge(fromId, toId)
 
 
 def printUsageSummary():
@@ -101,13 +123,19 @@ def parseArguments():
       type="int",
       dest="numGraphs",
       default=10,
-      help="specify number of graphs")
+      help="specify number of graphs (default 10)")
   parser.add_option("-n",
       "--nodes",
       type="int",
       dest="numNodes",
       default=100,
-      help="specify number of nodes")
+      help="specify number of nodes (default 100)")
+  parser.add_option("-c",
+      "--clique",
+      type="int",
+      dest="cliqueSize",
+      default=-1,
+      help="specify clique size (default 1/2 number of nodes)")
   return parser.parse_args()
 
 
