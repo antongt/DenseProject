@@ -1,0 +1,89 @@
+
+Log started (V12.6.1.0) Wed Apr 20 16:03:39 2016
+
+Tried aggregator 1 time.
+No LP presolve or aggregator reductions.
+Presolve time = 0.00 sec. (0.02 ticks)
+Parallel mode: using up to 2 threads for barrier.
+Number of nonzeros in lower triangle of A*A' = 401
+Using Approximate Minimum Degree ordering
+Total time for automatic ordering = 0.00 sec. (0.03 ticks)
+Summary statistics for Cholesky factor:
+  Threads                   = 2
+  Rows in Factor            = 66
+  Integer space required    = 139
+  Total non-zeros in factor = 966
+  Total FP ops to factor    = 16864
+ Itn      Primal Obj        Dual Obj  Prim Inf Upper Inf  Dual Inf Inf Ratio
+   0   1.0000000e+01   0.0000000e+00  9.59e+02  0.00e+00  1.07e+02  1.00e+00
+   1   2.3436863e+00   2.3433768e+00  4.11e+02  0.00e+00  4.59e+01  3.23e+04
+   2   3.1316908e+00   3.0460710e+00  3.01e+01  0.00e+00  1.94e+00  8.77e+01
+   3   1.5674155e+00   1.7644371e+00  3.42e+00  0.00e+00  4.84e-01  2.36e+02
+   4   1.3034905e+00   1.3881095e+00  2.99e-01  0.00e+00  1.09e-01  1.13e+03
+   5   1.3319093e+00   1.3374185e+00  3.33e-02  0.00e+00  3.90e-03  3.88e+04
+   6   1.3333329e+00   1.3333345e+00  5.30e-06  0.00e+00  1.37e-06  1.30e+08
+   7   1.3333333e+00   1.3333333e+00  6.26e-10  0.00e+00  1.62e-10  2.60e+12
+   8   1.3333333e+00   1.3333333e+00  7.45e-14  0.00e+00  1.66e-14  3.46e+16
+Barrier time = 0.01 sec. (0.41 ticks)
+Parallel mode: deterministic, using up to 2 threads for concurrent optimization.
+
+Dual crossover.
+  Dual:  Fixing 23 variables.
+       22 DMoves:  Infeasibility  0.00000000e+00  Objective  1.33333333e+00
+        0 DMoves:  Infeasibility  2.96290770e-15  Objective  1.33333333e+00
+  Dual:  Pushed 18, exchanged 5.
+  Primal:  Fixed no variables.
+Reinitializing dual norms . . .
+
+Dual simplex solved model.
+
+Total crossover time = 0.01 sec. (0.17 ticks)
+
+Total time on 2 threads = 0.02 sec. (0.61 ticks)
+
+Dual simplex - Optimal:  Objective =  1.3333333333e+00
+Solution time =    0.02 sec.  Iterations = 0 (0)
+Deterministic time = 0.61 ticks  (30.28 ticks/sec)
+
+
+Variable Name           Solution Value
+t                             1.333333
+y2529                         0.083333
+y8586                         0.083333
+y286                          0.166667
+y8426                         0.083333
+y3300                         0.166667
+y1200                         0.166667
+y6779                         0.083333
+y1136                         0.166667
+x0_2529#6779                  0.083333
+x0_2529#8586                  0.083333
+x0_1200#3300                  0.166667
+x0_1200#8586                  0.083333
+x0_1136#1200                  0.166667
+x0_1136#3300                  0.166667
+x0_6779#8426                  0.083333
+x0_6779#8586                  0.083333
+x0_8426#8586                  0.083333
+x0_286#1136                   0.166667
+x0_286#3300                   0.166667
+x1_2529#8586                  0.083333
+x1_1200#3300                  0.166667
+x1_1200#8586                  0.083333
+x1_1136#1200                  0.166667
+x1_1136#3300                  0.166667
+x1_6779#8586                  0.083333
+x1_8426#8586                  0.083333
+x1_286#1136                   0.166667
+x1_286#1200                   0.166667
+x1_286#3300                   0.166667
+x2_2529#8586                  0.083333
+x2_1200#3300                  0.166667
+x2_1200#8586                  0.083333
+x2_1136#1200                  0.166667
+x2_1136#3300                  0.166667
+x2_6779#8586                  0.083333
+x2_8426#8586                  0.083333
+x2_286#1136                   0.166667
+x2_286#1200                   0.166667
+x2_286#3300                   0.166667
