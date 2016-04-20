@@ -231,11 +231,34 @@ def main(argv):
 
 		t = getSolution(getNonZero(dense))
 		
-		(name,graph,density) = fsg(nodes)
+		(name,graph,density) = findSmallestGraph(n,gs)
 		
+
 		print "t* = "+str(t)
 		print "density = "+str(density)
 		print "t* =? density : " +str(abs(t - density) < 0.000005)
+		print "Local minimal nodes: "+str(n)
+		print "---"
+		print "Would you like to save the fault inducing minimized graphs? y/n"
+		while  usr_in not in ["y","n"]:
+			usr_in = raw_input(">") 
+		
+		if usr_in == "y":
+			
+			data = sys.argv[1].split("/")[1]
+			path = "results/snap/minimal/"
+			if not os.path.exists(path) :
+				os.makedirs(path)
+			filename = raw_input('Enter a snapgraph name: ')
+			print "saving graphs in: " + path +" under names "+filename+"i.txt"
+			for i in range(0,len(gs)):
+				snap.SaveEdgeList(gs[i],path+filename+str(i+1)+".txt","Minimal graph from" + data)		
+
+
+		else:
+			print "exiting..."
+
+
 	if usr_in == "2":
 		if testGraphs(gs,True):
 			print "No, input does not fail, e.g t* = density"
@@ -260,6 +283,8 @@ def main(argv):
 		print "t* = "+str(t)
 		print "density = "+str(density)
 		print "t* =? density : " +str(abs(t - density) < 0.000005)
+		print "Local minimal nodes: "+str(nodes)
+
 
 if __name__ == "__main__":
 	main(sys.argv)

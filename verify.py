@@ -11,7 +11,7 @@ import os
 # to stdout
 # /home/kognitiva/Dokument/3NUVARANDE/3KAND/verify.py
 def usage():
-  sys.exit("usage: python verify.py <resultGraph.txt> <original1.txt> <original2.txt> ...")
+  sys.exit("usage: python verify.py <graphDCS_LP|DCS_GREEDY.txt> <original1.txt> <original2.txt> ...")
 # Returns smallest subgraph induced by nodeset
 # from sys.argv[1] over graphs from sys.argv[2:]
 # and saves it to users choice of name
