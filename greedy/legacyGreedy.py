@@ -17,15 +17,14 @@ def loadGraphs():
 def loadDirGraphs():
     Graphs = []
     for arg in sys.argv[2:]:
-        g = snap.LoadEdgeList(snap.PNGraph, arg, 0, 1)
-        snap.MakeUnDir(g)
-        Graphs.append(g)
-        sys.stdout.write("Imported " + arg + ": ")
-        printQuickStats(Graphs[len(Graphs)-1])
+         g = snap.LoadEdgeList(snap.PNGraph, arg, 0, 1)
+         snap.MakeUnDir(g)
+         Graphs.append(g)
+         sys.stdout.write("Imported " + arg + ": ")
+         printQuickStats(Graphs[len(Graphs)-1])
     return Graphs
 
 def preprocess(Graphs):
-    global numberOfNodes
     ##### preprocessing start #####
     # TODO: clean up the preprocessing, possibly make it into a new function
 
@@ -47,9 +46,9 @@ def preprocess(Graphs):
         w.Add(i)
 
     # update graph list with subgraph induced by common nodes.
+
     for g in Graphs:
         subGraph(g, u)
-    numberOfNodes = Graphs[0].GetNodes()
 
 # TODO: Use snap.GetSubGraph() instead? It returned some sort of NoneType object
 # when I tried. It gave the following error when calling GetNodes on the
@@ -57,22 +56,6 @@ def preprocess(Graphs):
 # AttributeError: 'NoneType' object has no attribute 'GetNodes'
 
     ##### preprocessing end #####
-
-
-# If multiple graphs, do some preprocessing to make sure they are over the same
-# set of nodes.
-# Make sure all graphs have the same amount of nodes.
-# There could be a deeper check here.
-def simplePreprocessing(graphs):
-    global numberOfNodes
-    numberOfNodes = graphs[0].GetNodes()
-    totalEdges = 0
-    for g in graphs:
-        #assert g.GetNodes() == numberOfNodes
-        totalEdges += g.GetEdges()
-    print(str(numberOfNodes) + " nodes are common to all graphs")
-    print(str(totalEdges) + " total number of edges in all graphs")
-
 
 # Make g into an induced subgraph of g, removing all nodes that are not in v.
 # Keep the list of nodes to remove in a list to avoid removing while iterating
@@ -90,50 +73,25 @@ def subGraph(g, v):
 # to traverse the entire graph.
 def findSmallestDegree(graphs):
     global lookupTable
-    global takenTable
-    global numberOfNodes
     degree = 0
-    while True:
-        while (len(lookupTable[degree]) == 0):
-            degree += 1
-        smallestNode = lookupTable[degree].pop()
-        if (not takenTable[smallestNode]):  # make takenTable hashtable or similar or create larger table
-            break
+    while len(lookupTable[degree]) == 0:
+        degree += 1
+    smallestNode = lookupTable[degree][0]
     assert graphs[0].IsNode(smallestNode)
     return smallestNode
-
-def getSmallestDegree(node):
-    global degreeList
-    deg = -1
-    for n in range(0, len(degreeList)):
-        deg = min(degreeList[n][node], deg)
-    return deg
 
 # Create the data structure that is used in the function findSmallestDegree().
 # It is a list-of-lists, such that lookupTable[1] is a list of all nodes of
 # degree 1 (as reported by getMinDegree()).
 def initLookupTable(graphs):
     global lookupTable
-    global degreeList
-    global takenTable
-    global numberOfEdges
-    degreeList = []
     lookupTable = []
-    takenTable = []
-    numberOfEdges = []
-    for i in range(0,graphs[0].GetMxNId()):
-        takenTable.append(False)
-    for g in range(0, len(graphs)):
-        degreeList.append([])
-        for i in range(0,graphs[0].GetMxNId()):
-            degreeList[g].append(0)
-        numberOfEdges.append(graphs[g].GetEdges())
-        for n in graphs[g].Nodes():
-            degreeList[g][n.GetId()] = (n.GetDeg())
-            addToLookupTable(graphs, n.GetId(), n.GetDeg())
+    for n in graphs[0].Nodes():
+        addToLookupTable(graphs, n.GetId())
 
-def addToLookupTable(graphs, node,degree):
+def addToLookupTable(graphs, node):
     global lookupTable
+    degree = getMinDegree(graphs, node)
     while degree >= len(lookupTable):
         lookupTable.append([])
     lookupTable[degree].append(node)
@@ -164,25 +122,27 @@ def getMinDegree(graphs, node):
     return result
 
 # Calculate the average degree as density of a single graph.
-def density(n):
-    global numberOfNodes
-    global numberOfEdges
-    return numberOfEdges[n]/float(numberOfNodes)
+def density(g):
+    if g.GetNodes() == 0:  # Avoid division by zero.
+        return 0
+    else:
+        return g.GetEdges()/float(g.GetNodes())
 
-def quasiClique(n):
-    global numberOfNodes
-    global numberOfEdges
-    return numberOfEdges[n]-(0.334*binomial.coefficient(numberOfNodes, 2))
-
-def Clique(n):
-    global numberOfNodes
-    global numberOfEdges
-    return numberOfEdges[n]/binomial.coefficient(numberOfNodes, 2)
+def quasiClique(g):
+    if g.GetNodes() == 0:
+        return 0
+    else:
+        return g.GetEdges()-(0.334*binomial.coefficient(g.GetNodes(), 2))
+def Clique(g):
+    if g.GetNodes() == 0:
+        return 0
+    else:
+        return g.GetEdges()/binomial.coefficient(g.GetNodes(), 2)
 
 # The density of a set of graphs is the minimum density among them.
 def densityMultiple(graphs):
     result = float("Infinity")
-    for g in range(0, len(graphs)):
+    for g in graphs:
         result = min(result, density(g))
     return result
 
@@ -203,7 +163,6 @@ def printProgress(message, originalSize, currentSize):
 def getDCS_Greedy(originalGraphs):
     # Don't touch any of the original graphs, caller may use them further.
     graphs = []
-    global numberOfNodes
     for og in originalGraphs:
         graphs.append(snapGraphCopy.copyGraph(og))
     # Create a table of nodes by degree, to enable faster lookup.
@@ -211,14 +170,11 @@ def getDCS_Greedy(originalGraphs):
 
     # Pass 1, to find the subgraph with the highest density.
     highestDensity = 0
-    while numberOfNodes > 1:
+    while graphs[0].GetNodes() > 1:
         printProgress("Searching for highest density: ",
                 originalGraphs[0].GetNodes(), graphs[0].GetNodes())
         highestDensity = max(highestDensity, densityMultiple(graphs))
-        #removeSmallestDegreeNode(graphs)
-        node = findSmallestDegree(graphs)
-        numberOfNodes -= 1
-        updateLists(graphs, node)
+        removeSmallestDegreeNode(graphs)
     print("Highest density found: " + str(highestDensity))
 
     # Pass 2, look for the subgraph that has a density equal to highest seen.
@@ -254,22 +210,6 @@ def removeSmallestDegreeNode(graphs):
     for n in neighbors:
         addToLookupTable(graphs, n)
 
-def updateLists(graphs, node):
-    global takenTable
-    global degreeList
-    global lookupTable
-    global numberOfEdges
-    takenTable[node] = True
-    for g in range(0, len(graphs)):
-        nodeObj = graphs[g].GetNI(node)
-        degree = nodeObj.GetDeg()
-        numberOfEdges[g] -= degreeList[g][nodeObj.GetId()]
-        for edgeNum in range(0, degree):
-            neighbourNode = nodeObj.GetNbrNId(edgeNum)
-            if not takenTable[neighbourNode]:
-                degreeList[g][neighbourNode] -= 1
-                lookupTable[degreeList[g][neighbourNode]].append(neighbourNode)
-
 # Return a list of all nodes connected to node, in any of the graphs.
 def getNeighbors(graphs, node):
     neighbors = []
@@ -301,26 +241,37 @@ def timer():
 # Save the results to a snap graph file.
 # TODO: why does snap.SaveEdgeList not save the file?
 # TODO: what are we actually saving? Nodes, edges, density?
+def saveGraph(graph,name,description):
+    print("Saving graph to file "+ name)
+    snap.SaveEdgeList(graph, name, description)
 def saveResults(graph, runTime, density):
-    fileName = "greedy-out.tmp"
-    print("Saving as " + fileName)
-    description = "Densest subgraph by greedy algorithm, completed in " + runTime
-    #snap.SaveEdgeList(graph, fileName, description)
+    fileName = "DCS_GREEDY.log"
+    print("Saving as " + fileName + ". Please Change this name to something appropriate!")
+    print("Save file in results/log/")
+    description1 = "Densest subgraph by greedy algorithm, completed in " + runTime
     # Write the nodes into a list so that they can be sorted.
+    
+    edgeList = []
     nodeList = []
     for n in graph.Nodes():
         nodeList.append(n.GetId())
     nodeList.sort()
+    for e in graph.Edges():
+        edgeList.append("x_"+str(e.GetSrcNId())+"#"+str(e.GetDstNId()))
+    edgeList.sort()
+    
 
     f = open(fileName, 'w')
-    f.write('# Node list of the densest common subgraph of the following graphs:\n')
+    f.write('# Log file from DCS_GREEDY with following input graphs:\n')
     for arg in sys.argv[1:]:
         f.write('#   ' + arg + '\n')
     f.write('# Number of nodes: ' + str(len(nodeList)) + '\n')
     f.write('# Density: ' + str(density) + '\n')
     f.write('# Completed in ' + runTime + '\n')
     for n in nodeList:
-        f.write(str(n) + '\n')
+        f.write("y_"+str(n)+'\n')
+    for e in edgeList:
+        f.write(e+' \n')
 
 if(len(sys.argv) < 2):
   sys.exit("Usage: python " + sys.argv[0] + " <file1> <file2> ...")
@@ -333,13 +284,26 @@ else:
     graphs = loadGraphs()
 
 print("Imported " + str(len(graphs)) + " graphs in " + timer())
-# Don't remove, this isn't the deep preprocessing that takes time.
-simplePreprocessing(graphs)
-print("Preprocessing took " + timer())
+
+# If multiple graphs, do some preprocessing to make sure they are over the same
+# set of nodes.
+if len(graphs) == 1:
+    print("Only one graph, skipping preprocessing.")
+else:
+    print("Preprocessing...")
+    preprocess(graphs)
+    # Make sure all graphs have the same amount of nodes.
+    # There could be a deeper check here.
+    for g in graphs:
+        assert g.GetNodes() == graphs[0].GetNodes()
+    print(str(graphs[0].GetNodes()) + " nodes are common to all graphs")
+    print("Preprocessing took " + timer())
 
 (g2, density) = getDCS_Greedy(graphs)
 runTime = timer()
+saveGraph(g2,"DCS_GREEDY.txt","Greedy result graph")
 printQuickStats(g2)
+print("Returned type from g2: " + str(type(g2)))
 print("The greedy algorithm completed in " + runTime)
 saveResults(g2, runTime, density)
 
