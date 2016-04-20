@@ -1,0 +1,15 @@
+# Undirected graph (each unordered pair of nodes is saved once): results/snap/minimal/ore2FAULT1.txt
+# Minimal graph fromoregonFAULT-2
+# Nodes: 8 Edges: 11
+# NodeId	NodeId
+6779	8426
+6779	8586
+1200	3300
+1200	8586
+2529	6779
+2529	8586
+1136	1200
+1136	3300
+8426	8586
+286	1136
+286	3300

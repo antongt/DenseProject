@@ -1,0 +1,17 @@
+# Undirected graph (each unordered pair of nodes is saved once): ore2FAULT.txt
+# SnapGraph from logfileore2FAULT
+
+# Nodes: 8 Edges: 12
+# NodeId	NodeId
+2529	6779
+2529	8586
+286	1136
+286	1200
+286	3300
+8426	8586
+1200	3300
+1200	8586
+6779	8426
+6779	8586
+1136	1200
+1136	3300
