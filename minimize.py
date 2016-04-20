@@ -52,17 +52,24 @@ def findSmallestGraph(nodes,Graphs):
 	for i in nodes : 
 	  a.Add(i)
 	density = 500
-	g = -1
+	smallest = -1
 
 	for i in range(0,len(Graphs)):
-		Graphs[i] = snap.GetSubGraph(Graphs[i],a)
-		newD = Graphs[i].GetEdges() / float(Graphs[i].GetNodes())
+		graph = snap.GetSubGraph(Graphs[i],a)
+		
+		try:
+			newD = graph.GetEdges() / float(graph.GetNodes())
+		except ZeroDivisionError:
+			print "Div zero. setting density=0"
+			newD = 0
+
 		if newD < density :
 			density = newD
-			g = i
+			smallest = graph
+
 	#print "Smallest graph was: "+ str(g)
 	#print "Density: "+str(density)
-	return ("find smallest",Graphs[g],density)
+	return ("find smallest",smallest,density)
 
 def printStats(graphs):
 	
@@ -147,9 +154,10 @@ def split(list, n):
 # returns a local minimal fault inducing node set
 # if it terminates that is...
 def ddmin(chunk_size,nodes,graphs):
-	
-	while chunk_size != len(nodes):
-		cdid_pass = True
+	did_pass = True
+	# break when chunk_size == len(nodes) and did_pass 
+	while not (chunk_size == len(nodes) and did_pass):
+		did_pass = True
 		gs = []
 		a = split(nodes,chunk_size)	
 		for chunk in a:
@@ -157,8 +165,10 @@ def ddmin(chunk_size,nodes,graphs):
 			gs = []
 			for g in graphs : 
 				gs.append(getSubgraph(g,n))
-			if not testGraphs(gs,True):
+			
+			if not testGraphs(gs,False):
 				print "nodes: "+str(nodes)
+				print "len(nodes): "+str(len(nodes))
 				print "caused fault. minimizing.."
 				did_pass = False
 				nodes = n
@@ -167,7 +177,10 @@ def ddmin(chunk_size,nodes,graphs):
 				break
 				#break early since we need to look no further
 		if did_pass:
+			print "passed all tests. Updating chunk_size"
 			chunk_size = min(chunk_size*2,len(nodes))
+			print "new chunk_size: "+str(chunk_size)+", len(nodes): "+str(len(nodes))
+			
 	print "returning nodes: "+str(nodes)
 	if testGraphs(graphs,False):
 		sys.exit("ddmin bug.. exiting")
@@ -182,10 +195,12 @@ def main(argv):
 	# Load and solve LP
 	usr_in = ""
 	print "Program: minimize..."
+	print "use the following input"
+	print "data/oregonFAULT-2/oregon2_010421.txt data/oregonFAULT-2/oregon2_010428.txt data/oregonFAULT-2/oregon2_010407.txt"
 	print "1) minimize nodes wrt sys.argv[1:]"
 	print "2) Does this input fail (sys.argv[1:]) yes/no"
-
-	while  usr_in not in ["1","2"]:
+	print "3) Run this: Example nodes"
+	while  usr_in not in ["1","2","3"]:
 		usr_in = raw_input(">") 
 
 	print "You have Choosen " + usr_in +"!"
@@ -226,6 +241,25 @@ def main(argv):
 			print "No, input does not fail, e.g t* = density"
 		else:
 			print "Yes, input does fail, e.g t* != density"
+	if usr_in == "3":
+		nodes = [5388, 6659, 13237, 5466, 9019, 9013, 5611]
+		for g in gs:
+			g = getSubgraph(g,nodes)
+		
+		lp.printMoreGraphs(gs)
+		dense = cplex.Cplex("dense.lp")
+		os.remove("dense.lp")
+		alg = dense.parameters.lpmethod.values
+		dense.parameters.lpmethod.set(alg.barrier)
+		dense.solve()
+
+		t = getSolution(getNonZero(dense))
+		
+		(name,graph,density) = fsg(nodes)
+		
+		print "t* = "+str(t)
+		print "density = "+str(density)
+		print "t* =? density : " +str(abs(t - density) < 0.000005)
 
 if __name__ == "__main__":
 	main(sys.argv)
