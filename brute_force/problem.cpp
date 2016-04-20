@@ -1,5 +1,7 @@
 #include "problem.h"
 
+#define DEBUGPRINTING
+
 /*
  * Check that the integer datatype is big enough to hold all the nodes.
  */
@@ -8,19 +10,14 @@ bool checkBigEnoughIntegers()
     return sizeof(nodeSet)*CHAR_BIT >= MAXNUMNODES;
 }
 
+
 Problem::Problem() : numNodes(0), numGraphs(0)
 {
     // Initialized to an invalid value.
     for(int i=0; i<MAXNUMNODES; ++i)
         nodeIds[i] = INT_MAX;
-
-    // Edges initialized to all non-existing.
-    //for(int i=0; i<MAXNUMGRAPHS * MAXNUMNODES; ++i)
-    //    edges[i] = 0;
 }
 
-//Problem::~Problem()
-//{}
 
 /*
  * Graphs should be stored in files consisting of comments beginning with #
@@ -42,10 +39,10 @@ bool Problem::readGraph(char* fileName)
         }
     }
     // TODO: More checks here before it is declared successful?
-    //std::cout << "Read complete: " << edgeSets[numGraphs] << std::endl;
     ++numGraphs;
     return true;
 }
+
 
 /*
  * Use the map nodeIds to find the index of a node. If the node isn't found,
@@ -64,38 +61,52 @@ int Problem::nodeIdToIndex(int id)
     }
     // Room to add it.
     nodeIds[numNodes] = id;
-    //std::cout << "Adding node " << id << " as index " << numNodes << std::endl;
     return numNodes++; // Return the value before incrementing.
 }
+
 
 const int Problem::getNumGraphs()
 {
     return numGraphs;
 }
 
+
 void Problem::setEdge(int from, int to, int graph)
 {
     int fromId = nodeIdToIndex(from);
     int toId = nodeIdToIndex(to);
-    if(fromId == -1 || toId == -1)
-        return; // Error.
+    if(fromId == -1 || toId == -1) {
+        std::cerr << "Error, invalid node id in edge (" <<
+            from << ", " << to << ")" << std::endl;
+        return;
+    }
     edgeSets[graph].set(getEdgeIndex(fromId, toId));
 }
 
+
 /*
+ * The edges are true/false values stored in a matrix such that if there is an
+ * edge between A and B, then the cell at row A and column B is true.
+ * However, since the graph is undirected, cell AB has the same value as cell
+ * BA. Also, since there are no self edges, the diagonal where row = column is
+ * also unnecessary. So to avoid wasting memory, the values are stored in a
+ * one-dimensional array.
+ *
  * How does one figure out which index a specific edge (n1, n2) has?
  * (See figure below)
- * Assume n1 > n2.
+ * Assume n1 > n2. Row and column numbering start at 0.
  * Choose row n1.
  * First index on that row equals n1*(n1-1)/2 = (n1*n1-n1)/2.
  * Add n2 to get the index.
  *
- *      A   B   C   D   E
- *  A
- *  B   0
- *  C   1   2
- *  D   3   4   5
- *  E   6   7   8   9
+ *                  n2
+ *          0   1   2   3   4
+ *        ------------------
+ *      0|
+ *      1|  0
+ *  n1  2|  1   2
+ *      3|  3   4   5
+ *      4|  6   7   8   9
  */
 int Problem::getEdgeIndex(int n1, int n2)
 {
@@ -104,23 +115,26 @@ int Problem::getEdgeIndex(int n1, int n2)
     return (n2*n2-n2)/2+n1;
 }
 
+
 /*
  * Get the minimum density among all the edge sets for a solution.
  */
 double Problem::getDensity(nodeSet solution)
 {
-    // Avoid a division by zero. If no nodes, density is 0.
+    // Avoid a division by zero. If no nodes, return density as 0.
     if(getNumNodesInSolution(solution) == 0)
         return 0;
 
-    int min = getNumEdges(solution, 0);
+    // Find the minimum number of edges among all the edge sets.
+    int minEdges = getNumEdges(solution, 0);
     for(int i=1; i<numGraphs; ++i) {
-        int density = getNumEdges(solution, i);
-        if(density < min)
-            min = density;
+        int edges = getNumEdges(solution, i);
+        if(edges < minEdges)
+            minEdges = edges;
     }
-    return (double)min/getNumNodesInSolution(solution);
+    return ((double)minEdges)/getNumNodesInSolution(solution);
 }
+
 
 /*
  * The number of nodes in a solution is the number of bits set to 1.
@@ -135,10 +149,12 @@ int Problem::getNumNodesInSolution(nodeSet solution)
     return result;
 }
 
+
 bool Problem::isNodeInSolution(int node, nodeSet solution)
 {
     return (solution & (1<<node)) != 0;
 }
+
 
 /*
  * Get the density for a specific edge set and solution.
@@ -170,6 +186,7 @@ int Problem::getNumEdges(nodeSet solution, int edgeSetNum)
     return result;
 }
 
+
 /*
  * Since this is a brute force solution, iterate through every possible
  * solution and find the best.
@@ -181,9 +198,13 @@ void Problem::solve()
     nodeSet bestSolution = 0;
     double bestDensity = 0;
     while(solution < lastSolution) {
-        //std::cout << "Testing solution " << solution;
+#ifdef DEBUGPRINTING
+        std::cout << "Testing solution " << solution;
+#endif
         double density = getDensity(solution);
-        //std::cout << ", density = " << density << std::endl;
+#ifdef DEBUGPRINTING
+        std::cout << ", density = " << density << std::endl;
+#endif
         if(density > bestDensity) {
             bestDensity = density;
             bestSolution = solution;
@@ -192,9 +213,11 @@ void Problem::solve()
     }
     std::cout << "Largest density found was " << bestDensity;
     std::cout << " for solution " << bestSolution << std::endl;
-    std::cout << "This solution includes the following nodes:" << std::endl;
+    std::cout << "This solution includes the following " << 
+        getNumNodesInSolution(bestSolution) << " nodes:" << std::endl;
     printNodesInSolution(bestSolution);
 }
+
 
 /*
  * Given a solution, translate those indexes back to ids in the original input

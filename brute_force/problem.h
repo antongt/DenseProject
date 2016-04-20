@@ -42,7 +42,6 @@ typedef std::bitset< (MAXNUMNODES * MAXNUMNODES - MAXNUMNODES) / 2 > edgeSet;
 class Problem {
 public:
     Problem();
-//    ~Problem();
     bool readGraph(char* fileName);
     const int getNumGraphs();
     void solve();
