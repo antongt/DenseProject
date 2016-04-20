@@ -8,7 +8,6 @@ import math
 import random
 from lib import snap
 from optparse import OptionParser
-#from lib import snapGraphCopy
 
 
 def main():
@@ -16,6 +15,10 @@ def main():
   (options, args) = parseArguments()
   if options.cliqueSize == -1:
     options.cliqueSize = options.numNodes/2
+  if options.cliqueSize > options.numNodes:
+    print >> sys.stderr, "Warning: clique size larger than graph. Reducing to graph size."
+    options.cliqueSize = options.numNodes
+
   print("graphs: " + str(options.numGraphs))
   print("nodes: " + str(options.numNodes))
   print("clique size: " + str(options.cliqueSize))
@@ -46,24 +49,23 @@ def main():
 # Defines a clique by randomly picking a number of nodes equal to size, from
 # the range [1, numNodes]. This function does not add any edges or manipulates
 # any graph, it simply selects the nodes and returns them as a list.
+# Note that regardless of size, the function will not return more nodes than
+# there are in the graf.
 def createCliqueNodes(numNodes, size):
-  if size>numNodes:
-    print >> sys.stderr, '\nError: Can\'t create clique larger than the number of nodes in the graph.'
-    sys.exit(1)
   nodes = []
-  while len(nodes) < size:
+  while len(nodes) < min(numNodes, size):
     r = random.randrange(1, numNodes+1)
     if nodes.count(r) == 0:
       nodes.append(r)
   return nodes
 
 
-# Create a clique from the nodes in cliqueNodes, in the given graph.
-def addCliqueToGraph(graph, cliqueNodes):
-  for a in range(1, len(cliqueNodes)-1):
-    for b in range(a+1, len(cliqueNodes)):
-      if not graph.IsEdge(a, b):
-        graph.AddEdge(a, b)
+# Create a clique from the nodes in nodesInClique, in the given graph.
+def addCliqueToGraph(graph, nodesInClique):
+  for a in range(0, len(nodesInClique)-1):
+    for b in range(a+1, len(nodesInClique)):
+      if not graph.IsEdge(nodesInClique[a], nodesInClique[b]):
+        graph.AddEdge(nodesInClique[a], nodesInClique[b])
 
 
 # Given an empty snap graph and a number of nodes N, modify the graph so that
