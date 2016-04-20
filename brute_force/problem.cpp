@@ -1,6 +1,6 @@
 #include "problem.h"
 
-#define DEBUGPRINTING
+// #define DEBUGPRINTING
 
 /*
  * Check that the integer datatype is big enough to hold all the nodes.
@@ -143,8 +143,8 @@ double Problem::getDensity(nodeSet solution)
 int Problem::getNumNodesInSolution(nodeSet solution)
 {
     int result = 0;
-    for(int i=0; i<MAXNUMNODES; ++i)
-        if((solution & (1<<i)) != 0)
+    for(int i=0; i<numNodes; ++i)
+        if(isNodeInSolution(i, solution))
             ++result;
     return result;
 }
@@ -152,7 +152,7 @@ int Problem::getNumNodesInSolution(nodeSet solution)
 
 bool Problem::isNodeInSolution(int node, nodeSet solution)
 {
-    return (solution & (1<<node)) != 0;
+    return solution & (1<<node);
 }
 
 
