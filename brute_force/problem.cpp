@@ -1,5 +1,8 @@
 #include "problem.h"
 
+/*
+ * Defining this causes more output to be printed.
+ */
 // #define DEBUGPRINTING
 
 /*
@@ -13,9 +16,8 @@ bool checkBigEnoughIntegers()
 
 Problem::Problem() : numNodes(0), numGraphs(0)
 {
-    // Initialized to an invalid value.
     for(int i=0; i<MAXNUMNODES; ++i)
-        nodeIds[i] = INT_MAX;
+        nodeIds[i] = 0;
 }
 
 
@@ -122,9 +124,8 @@ int Problem::getEdgeIndex(int n1, int n2)
 double Problem::getDensity(nodeSet solution)
 {
     // Avoid a division by zero. If no nodes, return density as 0.
-    if(getNumNodesInSolution(solution) == 0)
+    if(solution == 0)
         return 0;
-
     // Find the minimum number of edges among all the edge sets.
     int minEdges = getNumEdges(solution, 0);
     for(int i=1; i<numGraphs; ++i) {
@@ -157,8 +158,11 @@ bool Problem::isNodeInSolution(int node, nodeSet solution)
 
 
 /*
- * Get the density for a specific edge set and solution.
- * The density is the number of edges divided by number of nodes.
+ * Get the number of edges for a specific edge set and solution.
+ *
+ * TODO: Instead of iterating over the nodes and calculating an index every
+ * time, would it be faster to iterate over the bitset and keeping track of
+ * how the values of the nodes change instead?
  */
 int Problem::getNumEdges(nodeSet solution, int edgeSetNum)
 {
@@ -169,20 +173,6 @@ int Problem::getNumEdges(nodeSet solution, int edgeSetNum)
                 if(isNodeInSolution(n1, solution))
                     if(edgeSets[edgeSetNum].test(getEdgeIndex(n1, n2)))
                         ++result;
-    // TODO: it would be faster to iterate over the bitset and keeping track
-    // of the values of the nodes?
-//    int index = 0;
-//    int n2 = 1;
-//    while(n2 < numNodes) {
-//        n1 = 0;
-//        while(n1 < n2) {
-//            if(edgeSets[edgeSetNum].test(index))
-//                ++result;
-//            ++index;
-//            ++n1;
-//        }
-//        ++n2;
-//    }
     return result;
 }
 
@@ -197,22 +187,19 @@ void Problem::solve()
     nodeSet lastSolution = (1<<numNodes);
     nodeSet bestSolution = 0;
     double bestDensity = 0;
-    while(solution < lastSolution) {
-#ifdef DEBUGPRINTING
-        std::cout << "Testing solution " << solution;
-#endif
+    while(++solution < lastSolution) {
         double density = getDensity(solution);
 #ifdef DEBUGPRINTING
-        std::cout << ", density = " << density << std::endl;
+        std::cout << "Solution " << solution <<
+            " has density " << density << std::endl;
 #endif
         if(density > bestDensity) {
             bestDensity = density;
             bestSolution = solution;
         }
-        ++solution;
     }
     std::cout << "Largest density found was " << bestDensity;
-    std::cout << " for solution " << bestSolution << std::endl;
+    std::cout << " for solution " << bestSolution << "." << std::endl;
     std::cout << "This solution includes the following " << 
         getNumNodesInSolution(bestSolution) << " nodes:" << std::endl;
     printNodesInSolution(bestSolution);
@@ -226,13 +213,12 @@ void Problem::solve()
 void Problem::printNodesInSolution(nodeSet solution)
 {
     std::vector<int> nodeVec;
-    // Add nodes to the vector.
+    // Add node ids to the vector.
     for(int i=0; i<numNodes; ++i)
         if(isNodeInSolution(i, solution))
             nodeVec.push_back(nodeIds[i]);
-    // Sort the vector.
+    // Sort and print the ids.
     std::sort(nodeVec.begin(), nodeVec.end());
-    // Print the ids.
     for(std::vector<int>::iterator it=nodeVec.begin(); it!=nodeVec.end(); ++it)
         std::cout << *it << std::endl;
 }
