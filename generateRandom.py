@@ -28,7 +28,7 @@ def main():
   # Create a clique. This will make sure the graphs have something
   # in common and that the optimal solution is not the entire graph.
   nodesInClique = createCliqueNodes(options.numNodes, options.cliqueSize)
-  print 'Clique: ', nodesInClique
+  print 'Clique: ', sorted(nodesInClique)
 
   # The files will be called 01.txt, 02.txt and so on. How many zeroes
   # we need to pad with depends on the number of files to have room for
