@@ -47,6 +47,8 @@ def main(argv):
   alg = dense.parameters.lpmethod.values
   dense.parameters.lpmethod.set(alg.barrier)
   dense.solve()
+  print "The solution is", dense.solution.get_status_string()
+  print "Density:", dense.solution.get_objective_value()
 
 
 
