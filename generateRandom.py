@@ -1,6 +1,12 @@
 #
 # This script generates a number of random graphs over
 # the same set of nodes.
+#
+# Each graph is first generated as a connected graph with as few edges as
+# possible (N-1 edges for N nodes).
+# Then a number of random edges are added.
+# Finally a clique is added. This clique is the same in all the graphs
+# generated.
 
 import os
 import sys
@@ -22,6 +28,7 @@ def main():
   print("graphs: " + str(options.numGraphs))
   print("nodes: " + str(options.numNodes))
   print("clique size: " + str(options.cliqueSize))
+  print("random edges: " + str(options.numRandomEdges))
 
   directory = createNewDir()
 
@@ -41,6 +48,7 @@ def main():
   for g in range(0, options.numGraphs):
     graph = snap.TUNGraph.New(options.numNodes, options.numNodes)
     createConnectedGraph(graph, options.numNodes)
+    addRandomEdges(graph, options.numRandomEdges)
     addCliqueToGraph(graph, nodesInClique)
     fileName = os.path.join(directory, str(1+g).zfill(fieldWidth) + ".txt")
     snap.SaveEdgeList(graph, fileName)
@@ -66,6 +74,16 @@ def addCliqueToGraph(graph, nodesInClique):
     for b in range(a+1, len(nodesInClique)):
       if not graph.IsEdge(nodesInClique[a], nodesInClique[b]):
         graph.AddEdge(nodesInClique[a], nodesInClique[b])
+
+
+# Add a number of completely random edges to the graph. The number of edges
+# added might be smaller if some of the edges already exists.
+def addRandomEdges(graph, numRandomEdges):
+  for i in range(0, numRandomEdges):
+    fromId = graph.GetRndNId()
+    toId = graph.GetRndNId()
+    if fromId != toId and not graph.IsEdge(fromId, toId):
+      graph.AddEdge(fromId, toId)
 
 
 # Given an empty snap graph and a number of nodes N, modify the graph so that
@@ -138,6 +156,12 @@ def parseArguments():
       dest="cliqueSize",
       default=-1,
       help="specify clique size (default 1/2 number of nodes)")
+  parser.add_option("-r",
+      "--random",
+      type="int",
+      dest="numRandomEdges",
+      default=0,
+      help="specify number of random edges to add (default 0)")
   return parser.parse_args()
 
 
