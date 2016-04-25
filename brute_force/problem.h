@@ -9,6 +9,7 @@
 #include <bitset>
 #include <vector>
 #include <algorithm>
+#include <thread>
 
 // The maximum numbers of nodes and graphs are hardcoded.
 #define MAXNUMNODES 32
@@ -46,6 +47,8 @@ public:
     bool readGraph(char* fileName);
     const int getNumGraphs();
     void solve();
+    // Solve a smaller subproblem. Returns the best solution in the interval.
+    nodeSet solveInterval(nodeSet first, nodeSet last) const;
 private:
     // Convert from node id in input data to index in internal data structure.
     int nodeIdToIndex(int id);
@@ -54,22 +57,22 @@ private:
     void setEdge(int from, int to, int graph);
 
     // Find index of a specific edge.
-    int getEdgeIndex(int n1, int n2);
+    int getEdgeIndex(int n1, int n2) const;
 
     // Calculate the density for a specific solution.
-    double getDensity(nodeSet solution);
+    double getDensity(nodeSet solution) const;
+
+    // Get minimum number of edges for a specific solution among all edge sets.
+    int getMinimumEdges(nodeSet solution) const;
 
     // Get the number of nodes in a specific solution.
-    int getNumNodesInSolution(nodeSet solution);
+    int getNumNodesInSolution(nodeSet solution) const;
 
     // Test if node is present in a specific solution.
-    bool isNodeInSolution(int node, nodeSet solution);
-
-    // Get the number of edges in a specific solution and edge set.
-    int getNumEdges(nodeSet solution, int edgeSetNum);
+    bool isNodeInSolution(int node, nodeSet solution) const;
 
     // Print the nodes in the solution. Converts index->id and sorts.
-    void printNodesInSolution(nodeSet solution);
+    void printNodesInSolution(nodeSet solution) const;
 
     // The input graphs may not have nodes numbered 0,1,2,3,...
     // They must be renumbered and this map remembers the original id for
@@ -83,6 +86,8 @@ private:
     // The edge sets.
     edgeSet edgeSets[MAXNUMGRAPHS];
 };
+
+void solveSubproblem(Problem* problem, nodeSet first, nodeSet last, nodeSet *best);
 
 #endif // RVD_PROBLEM_H
 

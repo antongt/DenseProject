@@ -1,11 +1,6 @@
 #include "problem.h"
 
 /*
- * Defining this causes more output to be printed.
- */
-// #define DEBUGPRINTING
-
-/*
  * Check that the integer datatype is big enough to hold all the nodes.
  */
 bool checkBigEnoughIntegers()
@@ -110,7 +105,7 @@ void Problem::setEdge(int from, int to, int graph)
  *      3|  3   4   5
  *      4|  6   7   8   9
  */
-int Problem::getEdgeIndex(int n1, int n2)
+int Problem::getEdgeIndex(int n1, int n2) const
 {
     if(n1 > n2)
         return (n1*n1-n1)/2+n2;
@@ -121,89 +116,107 @@ int Problem::getEdgeIndex(int n1, int n2)
 /*
  * Get the minimum density among all the edge sets for a solution.
  */
-double Problem::getDensity(nodeSet solution)
+double Problem::getDensity(nodeSet solution) const
 {
     // Avoid a division by zero. If no nodes, return density as 0.
     if(solution == 0)
         return 0;
     // Find the minimum number of edges among all the edge sets.
-    int minEdges = getNumEdges(solution, 0);
-    for(int i=1; i<numGraphs; ++i) {
-        int edges = getNumEdges(solution, i);
-        if(edges < minEdges)
-            minEdges = edges;
-    }
+    int minEdges = getMinimumEdges(solution);
     return ((double)minEdges)/getNumNodesInSolution(solution);
 }
 
 
 /*
- * The number of nodes in a solution is the number of bits set to 1.
- * TODO: Is there a smarter way?
+ * Get the minimum number of edges for a solution among all edge sets.
  */
-int Problem::getNumNodesInSolution(nodeSet solution)
+int Problem::getMinimumEdges(nodeSet solution) const
 {
-    int result = 0;
-    for(int i=0; i<numNodes; ++i)
-        if(isNodeInSolution(i, solution))
-            ++result;
-    return result;
+    // Results for each edge set stored here.
+    int result[numGraphs];
+    for(int i=0; i<numGraphs; ++i)
+        result[i] = 0;
+    // Iterate through every possible edge and update result.
+    for(int n2 = 1; n2<numNodes; ++n2) {
+        if(!isNodeInSolution(n2, solution))
+            continue;
+        for(int n1 = 0; n1<n2; ++n1) {
+            if(!isNodeInSolution(n1, solution))
+                continue;
+            for(int ei=0; ei<numGraphs; ++ei)
+                if(edgeSets[ei].test(getEdgeIndex(n1, n2)))
+                    ++result[ei];
+        }
+    }
+    // Find the smallest value in the array.
+    int minimum = INT_MAX;
+    for(int i=0; i<numGraphs; ++i)
+        if(result[i]<minimum)
+            minimum=result[i];
+    return minimum;
 }
 
 
-bool Problem::isNodeInSolution(int node, nodeSet solution)
+/*
+ * The number of nodes in a solution is the number of bits set to 1.
+ * This is called the Hamming Weight or popcount.
+ * The function calls the GCC built-in function, which should use the CPU
+ * built-in function if such a function is available. 
+ *
+ * Note that if this program is changed to use another nodeSet, such as
+ * unsigned long or unsigned long long, the name of the GCC built-in function
+ * changes. See https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
+ * For some more on Hamming Weight functions, see also
+ * https://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
+ */
+int Problem::getNumNodesInSolution(nodeSet solution) const
+{
+    return __builtin_popcount(solution);
+}
+
+
+bool Problem::isNodeInSolution(int node, nodeSet solution) const
 {
     return solution & (1<<node);
 }
 
 
 /*
- * Get the number of edges for a specific edge set and solution.
- *
- * TODO: Instead of iterating over the nodes and calculating an index every
- * time, would it be faster to iterate over the bitset and keeping track of
- * how the values of the nodes change instead?
- */
-int Problem::getNumEdges(nodeSet solution, int edgeSetNum)
-{
-    int result = 0;
-    for(int n2 = 1; n2<numNodes; ++n2)
-        if(isNodeInSolution(n2, solution))
-            for(int n1 = 0; n1<n2; ++n1)
-                if(isNodeInSolution(n1, solution))
-                    if(edgeSets[edgeSetNum].test(getEdgeIndex(n1, n2)))
-                        ++result;
-    return result;
-}
-
-
-/*
- * Since this is a brute force solution, iterate through every possible
- * solution and find the best.
+ * Finds the solution by splitting the problem into smaller parts.
+ * This allows multiple threads to work on the problem at the same time.
  */
 void Problem::solve()
 {
-    nodeSet solution = 0;
-    nodeSet lastSolution = (1<<numNodes);
-    nodeSet bestSolution = 0;
-    double bestDensity = 0;
-    while(++solution < lastSolution) {
-        double density = getDensity(solution);
-#ifdef DEBUGPRINTING
-        std::cout << "Solution " << solution <<
-            " has density " << density << std::endl;
-#endif
-        if(density > bestDensity) {
-            bestDensity = density;
-            bestSolution = solution;
-        }
+    const int numThreads = 4;
+    // This array stores the solutions of the subproblems.
+    nodeSet candidates[numThreads];
+    // Calculate how large each subproblem is.
+    nodeSet intervalSize = (1 << numNodes) / numThreads;
+    std::thread workers[numThreads];
+    for(int t = 0; t<numThreads; ++t) {
+        nodeSet from = t*intervalSize + 1;
+        nodeSet to = (t+1)*intervalSize;
+        // Make sure the last interval is exactly correct, the division might
+        // lose some solutions otherwise(?).
+        if(t==numThreads-1)
+            to = (1 << numNodes)-1;
+        std::cout << "Thread " << t <<
+            " testing solution " << from << " to " << to << std::endl;
+        workers[t] = std::thread(solveSubproblem, this, from, to, &candidates[t]);
     }
-    std::cout << "Largest density found was ";
-    std::cout << std::setprecision(12) << bestDensity;
-    std::cout << " for solution " << bestSolution << "." << std::endl;
-    std::cout << "This solution includes the following " << 
-        getNumNodesInSolution(bestSolution) << " nodes:" << std::endl;
-    printNodesInSolution(bestSolution);
+    // Wait for all threads to finish.
+    for(int t=0; t<numThreads; ++t)
+        workers[t].join();
+    // Find the best solution among the interval winners.
+    nodeSet solution = 0;
+    for(int i=0; i<numThreads; ++i)
+        if(getDensity(candidates[i]) > getDensity(solution))
+            solution = candidates[i];
+    std::cout << std::setprecision(12) << "Largest density found was " <<
+        getDensity(solution) << " for solution " << solution << "." <<
+        std::endl << "This solution includes the following " << 
+        getNumNodesInSolution(solution) << " nodes:" << std::endl;
+    printNodesInSolution(solution);
 }
 
 
@@ -211,7 +224,7 @@ void Problem::solve()
  * Given a solution, translate those indexes back to ids in the original input
  * files and print a sorted column of all the nodes in that solution.
  */
-void Problem::printNodesInSolution(nodeSet solution)
+void Problem::printNodesInSolution(nodeSet solution) const
 {
     std::vector<int> nodeVec;
     // Add node ids to the vector.
@@ -222,5 +235,31 @@ void Problem::printNodesInSolution(nodeSet solution)
     std::sort(nodeVec.begin(), nodeVec.end());
     for(std::vector<int>::iterator it=nodeVec.begin(); it!=nodeVec.end(); ++it)
         std::cout << *it << std::endl;
+}
+
+
+/*
+ * Since this is a brute force solution, iterate through every possible
+ * solution between firstCandidate and lastCandidate and find the one
+ * with the highest density.
+ */
+nodeSet Problem::solveInterval(nodeSet first, nodeSet last) const
+{
+    nodeSet best = 0;
+    double highestDensity = 0;
+    for(nodeSet candidate = first; candidate <= last; ++candidate) {
+        double candidateDensity = getDensity(candidate);
+        if(candidateDensity > highestDensity) {
+            highestDensity = candidateDensity;
+            best = candidate;
+        }
+    }
+    return best;
+}
+
+
+void solveSubproblem(Problem *problem, nodeSet first, nodeSet last, nodeSet *best)
+{
+    *best = problem->solveInterval(first, last);
 }
 
