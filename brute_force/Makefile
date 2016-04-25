@@ -1,5 +1,5 @@
 CC=g++
-CC_OPTS=-Wall -O2
+CC_OPTS=-Wall -O2 --std=c++11
 LIBS=
 INC_PATH=
 TARGET=brute
