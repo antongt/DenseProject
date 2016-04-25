@@ -198,7 +198,8 @@ void Problem::solve()
             bestSolution = solution;
         }
     }
-    std::cout << "Largest density found was " << bestDensity;
+    std::cout << "Largest density found was ";
+    std::cout << std::setprecision(12) << bestDensity;
     std::cout << " for solution " << bestSolution << "." << std::endl;
     std::cout << "This solution includes the following " << 
         getNumNodesInSolution(bestSolution) << " nodes:" << std::endl;
