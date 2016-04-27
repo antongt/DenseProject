@@ -1,5 +1,6 @@
 from lib import snap
 import sys
+import time
 import os
 import cplex
 
@@ -46,11 +47,13 @@ def main(argv):
   os.remove("dense.lp")
   alg = dense.parameters.lpmethod.values
   dense.parameters.lpmethod.set(alg.barrier)
+# include the below line to not do the crossover and get a close
+# but not exact solution that can be extracted with filterLpSolution
+#  dense.parameters.barrier.crossover.set(-1)
+  startTime = time.clock()
+  #dense.parameters.lpmethod.set(5) # sifting algorithm
   dense.solve()
-
-
-
-
+  print(str(time.clock()-startTime))
 
 def printSingleGraph(Graph):
   edges = []
