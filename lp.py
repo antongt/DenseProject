@@ -53,7 +53,11 @@ def main(argv):
   startTime = time.clock()
   #dense.parameters.lpmethod.set(5) # sifting algorithm
   dense.solve()
-  print(str(time.clock()-startTime))
+ 
+  print("time taken: " + str(time.clock()-startTime))
+  
+  print "The solution is", dense.solution.get_status_string()
+  print "Density:", dense.solution.get_objective_value()
 
 def printSingleGraph(Graph):
   edges = []

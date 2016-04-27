@@ -1,6 +1,6 @@
 CC=g++
-CC_OPTS=-Wall -O2
-LIBS=
+CC_OPTS=-Wall -O3 --std=c++11
+LIBS=-lpthread
 INC_PATH=
 TARGET=brute
 RM=rm -f

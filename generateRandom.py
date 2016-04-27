@@ -1,6 +1,12 @@
 #
 # This script generates a number of random graphs over
 # the same set of nodes.
+#
+# Each graph is first generated as a connected graph with as few edges as
+# possible (N-1 edges for N nodes).
+# Then a number of random edges are added.
+# Finally a clique is added. This clique is the same in all the graphs
+# generated.
 
 import os
 import sys
@@ -13,22 +19,26 @@ from optparse import OptionParser
 def main():
   printUsageSummary()
   (options, args) = parseArguments()
-  if options.cliqueSize == -1:
-    options.cliqueSize = options.numNodes/2
-  if options.cliqueSize > options.numNodes:
-    print >> sys.stderr, "Warning: clique size larger than graph. Reducing to graph size."
-    options.cliqueSize = options.numNodes
+  if not cleanUpArguments(options):
+    sys.exit(2) # 2 is usually command line error?
 
   print("graphs: " + str(options.numGraphs))
   print("nodes: " + str(options.numNodes))
-  print("clique size: " + str(options.cliqueSize))
+  print("random edges: " + str(options.numRandomEdges))
+  for cs in options.cliqueSize:
+    print("clique size: " + str(cs))
 
-  directory = createNewDir()
-
-  # Create a clique. This will make sure the graphs have something
+  # Create the cliques. They will make sure the graphs have something
   # in common and that the optimal solution is not the entire graph.
-  nodesInClique = createCliqueNodes(options.numNodes, options.cliqueSize)
-  print 'Clique: ', nodesInClique
+  nodesInClique = []
+  blacklist = [] # This list is to make sure the cliques don't overlap.
+  for i in range(0, len(options.cliqueSize)):
+    if options.cliqueSize[i] > 0:
+      nodesInClique.append(sorted(createCliqueNodes(options.numNodes,
+          options.cliqueSize[i],
+          blacklist)))
+      print 'Clique: ', nodesInClique[-1]
+      blacklist += nodesInClique[-1]
 
   # The files will be called 01.txt, 02.txt and so on. How many zeroes
   # we need to pad with depends on the number of files to have room for
@@ -38,12 +48,38 @@ def main():
   # For as many graphs as we need, create a minimal randomized connected
   # graph, then add the edges from the clique previously created to it,
   # and save to a file.
+  directory = createNewDir()
   for g in range(0, options.numGraphs):
     graph = snap.TUNGraph.New(options.numNodes, options.numNodes)
     createConnectedGraph(graph, options.numNodes)
-    addCliqueToGraph(graph, nodesInClique)
+    addRandomEdges(graph, options.numRandomEdges)
+    for c in nodesInClique:
+      addCliqueToGraph(graph, c)
     fileName = os.path.join(directory, str(1+g).zfill(fieldWidth) + ".txt")
     snap.SaveEdgeList(graph, fileName)
+
+
+# Make sure the options are somewhat sensible.
+# Returns True if everything checks out, False if there were errors.
+def cleanUpArguments(options):
+  options.numGraphs = max(0, options.numGraphs)
+  if options.numGraphs < 1:
+    print >> sys.stderr, "Error: number of graphs must be at least 1."
+    return False
+  options.numNodes = max(0, options.numNodes)
+  if options.numNodes < 1:
+    print >> sys.stderr, "Error: number of nodes must be at least 1 (but ideally more)."
+    return False
+  options.numRandomEdges = max(0, options.numRandomEdges)
+  # Make sure the clique size list exists, to avoid errors later.
+  if not options.cliqueSize:
+    options.cliqueSize = [0]
+  for i in range(0, len(options.cliqueSize)):
+    options.cliqueSize[i] = max(0, options.cliqueSize[i])
+  if sum(options.cliqueSize) > options.numNodes:
+    print >> sys.stderr, "Error: cliques contain more nodes than the graph."
+    return False
+  return True
 
 
 # Defines a clique by randomly picking a number of nodes equal to size, from
@@ -51,11 +87,11 @@ def main():
 # any graph, it simply selects the nodes and returns them as a list.
 # Note that regardless of size, the function will not return more nodes than
 # there are in the graf.
-def createCliqueNodes(numNodes, size):
+def createCliqueNodes(numNodes, size, blacklist):
   nodes = []
   while len(nodes) < min(numNodes, size):
     r = random.randrange(1, numNodes+1)
-    if nodes.count(r) == 0:
+    if not r in nodes and not r in blacklist:
       nodes.append(r)
   return nodes
 
@@ -66,6 +102,16 @@ def addCliqueToGraph(graph, nodesInClique):
     for b in range(a+1, len(nodesInClique)):
       if not graph.IsEdge(nodesInClique[a], nodesInClique[b]):
         graph.AddEdge(nodesInClique[a], nodesInClique[b])
+
+
+# Add a number of completely random edges to the graph. The number of edges
+# added might be smaller if some of the edges already exists.
+def addRandomEdges(graph, numRandomEdges):
+  for i in range(0, numRandomEdges):
+    fromId = graph.GetRndNId()
+    toId = graph.GetRndNId()
+    if fromId != toId and not graph.IsEdge(fromId, toId):
+      graph.AddEdge(fromId, toId)
 
 
 # Given an empty snap graph and a number of nodes N, modify the graph so that
@@ -134,10 +180,16 @@ def parseArguments():
       help="specify number of nodes (default 100)")
   parser.add_option("-c",
       "--clique",
+      action="append",
       type="int",
       dest="cliqueSize",
-      default=-1,
-      help="specify clique size (default 1/2 number of nodes)")
+      help="specify clique size (default 0). This option can be used multiple times to create non-overlapping cliques.")
+  parser.add_option("-r",
+      "--random",
+      type="int",
+      dest="numRandomEdges",
+      default=0,
+      help="specify number of random edges to add (default 0)")
   return parser.parse_args()
 
 
