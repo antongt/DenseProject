@@ -26,6 +26,8 @@ for g in range(0,len(graphs)):
         leastDense = g
         smallestNumberOfEdges = edges
 print ("number of edges: " + str(smallestNumberOfEdges))
+print ("number of nodes: " + str(len(nodes)))
+print ("density: " + str(smallestNumberOfEdges*1.0/len(nodes)))
 print "calculating diameter"
 diam = snap.GetBfsFullDiam(graphs[leastDense], 100)
 print "calculating clustering coef"

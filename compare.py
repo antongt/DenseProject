@@ -25,14 +25,7 @@ def getSubgraph(target_graph,graph):
 # Start of main program
 if(len(sys.argv) < 3):
 	usage()
-lpName,lpExt  = os.path.splitext(sys.argv[1])
-gName,gExt  = os.path.splitext(sys.argv[2])
-if lpExt != ".txt":
-	usage()
-if gExt != ".txt":
-	usage()
-# Load graphs
-lpG = snap.LoadEdgeList(snap.PUNGraph, sys.argv[1], 0, 1)
+pG = snap.LoadEdgeList(snap.PUNGraph, sys.argv[1], 0, 1)
 gG = snap.LoadEdgeList(snap.PUNGraph, sys.argv[2], 0, 1)
 if "minLP" not in sys.argv[1]:
 	usage()
