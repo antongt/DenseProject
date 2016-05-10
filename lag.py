@@ -95,8 +95,8 @@ usedNodes = preprocessGreedy.simplePreprocessing(Graphs)
 (nodes, LB) = DCSGreedy.getDCS_Greedy(Graphs,usedNodes)
 scalar = 1.0
 dense = cplex.Cplex("dense.lp")
-j = 0;
-while(j<1):
+j = 0
+while(j<5):
     #remove all output from cplex:
     dense.set_results_stream(None)
 
