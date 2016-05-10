@@ -1,8 +1,10 @@
 from lib import snap
+from lib import printResults
 import sys
 import time
 import os
 import cplex
+import re
 
 
 def main(argv):
@@ -49,13 +51,12 @@ def main(argv):
   dense.parameters.lpmethod.set(alg.barrier)
 # include the below line to not do the crossover and get a close
 # but not exact solution that can be extracted with filterLpSolution
-#  dense.parameters.barrier.crossover.set(-1)
+  dense.parameters.barrier.crossover.set(-1)
   startTime = time.clock()
   #dense.parameters.lpmethod.set(5) # sifting algorithm
   dense.solve()
- 
+  printResults.save(dense)  
   print("time taken: " + str(time.clock()-startTime))
-  
   print "The solution is", dense.solution.get_status_string()
   print "Density:", dense.solution.get_objective_value()
 

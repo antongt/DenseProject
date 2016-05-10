@@ -31,7 +31,7 @@ def fsg(nodes):
 	a = snap.TIntV()
 	for i in nodes : 
 	  a.Add(i)
-	density = 500
+	density = sys.maxint
 	
 	for i in range(0,len(Graphs)):
 		Graphs[i] = snap.GetSubGraph(Graphs[i],a)

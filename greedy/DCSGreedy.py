@@ -63,17 +63,11 @@ def densityMultiple(graphs):
         result = min(result, densityGreedy.density(numberOfEdges[g],numberOfNodes))
     return result
 
-
-
 # Get the densest common subgraph using the greedy algorithm.
-def getDCS_Greedy(originalGraphs,nodes):
-    # Don't touch any of the original graphs, caller may use them further.
-    graphs = []
+def getDCS_Greedy(graphs,nodes):
     global numberOfNodes
     global numberOfEdges
     numberOfNodes = len(nodes)
-    for og in originalGraphs:
-        graphs.append(snapGraphCopy.copyGraph(og))
     # Create a table of nodes by degree, to enable faster lookup.
     utils.timer()
     initLookupTable(graphs)

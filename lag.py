@@ -1,4 +1,7 @@
 from lib import snap
+from lib import printResults
+from greedy import DCSGreedy
+from greedy import preprocessGreedy
 import sys
 import os
 import cplex
@@ -60,17 +63,12 @@ printGraphs(Graphs)
 print "Warning: This file assumes already preprocessed files,"
 print "         meaning the input should be undirected and"
 print "         all node-sets should be equal, see preprocess.py.\n"
-print "Warning: Only run on oregon-1, alternativly change the"
-print "         lowerbound variable of the stepsize to fit"
-print "         with the result of running greedy on you graphs.\n"
-print "Warning: Could give infeasible solutions if the scalar of"
-print "         the stepsize is too large.\n"
-print "Warning: Only does 5 iterations.\n"
+print "Warning: Only does 10 iterations.\n"
 print "Info: total number of edges:" + str(len(xijm))
 
 
 dense0 = cplex.Cplex("dense.lp")
-dense0.set_results_stream(None)
+#dense0.set_results_stream(None)
 alg = dense0.parameters.lpmethod.values
 dense0.parameters.lpmethod.set(alg.barrier)
 dense0.parameters.barrier.crossover.set(-1)
@@ -83,7 +81,9 @@ iter0_time = end_time0 - start_time0
 prev_t    = dense0.solution.get_values(0)
 prev_xijm = dense0.solution.get_values(range(1,len(xijm)+1))
 prev_val  = dense0.solution.get_objective_value()
-
+printResults.save(dense0)
+print "time taken: " + str(iter0_time)
+sys.exit()
 print "Iteration 0 ("+str(iter0_time)+" sec.): " + str(prev_val)
 
 # initial value of all lamdas are -1.
@@ -91,11 +91,12 @@ lamda = [-1]*len(Graphs)
 
 times = []
 times.append(iter0_time)
-
+usedNodes = preprocessGreedy.simplePreprocessing(Graphs)
+(nodes, LB) = DCSGreedy.getDCS_Greedy(Graphs,usedNodes)
 scalar = 1.0
-for j in range(1,100):
-  with cplex.Cplex("dense.lp") as dense:
-
+dense = cplex.Cplex("dense.lp")
+j = 0;
+while(j<1):
     #remove all output from cplex:
     dense.set_results_stream(None)
 
@@ -113,7 +114,6 @@ for j in range(1,100):
     print scalar
     #calculate stepsize:
     UB = prev_val
-    LB = 11.98 # TODO: get from greedy.
     numer = scalar * (UB - LB)
     denom = sum([grad * grad for grad in grads])
     stepsize = numer / denom
@@ -151,7 +151,10 @@ for j in range(1,100):
       print "infeasible solution."
       scalar = scalar * 0.5
       lamda = oldlamda[:]
-    else: 
+    else:
+      j += 1
+      if scalar < 0.01:
+          break
       prev_t    = dense.solution.get_values(0)
       prev_xijm = dense.solution.get_values(range(1,len(xijm)))
       prev_val  = dense.solution.get_objective_value()
@@ -160,5 +163,6 @@ for j in range(1,100):
 
 total_time = sum(times)
 print "Total time: " + str(total_time) + " sec."
-
+printResults.save(dense)
+cplex.terminate()
 os.remove("dense.lp")
