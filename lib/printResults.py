@@ -8,9 +8,9 @@ def save(cplex):
             if value > (maxv / 100.0):
                 fullVariables.append(name[1:] + " " + str(value))
                 variables.append(name[1:])
-            with open("lp.out", "w") as fo:
-                for v in variables:
-                    fo.write(str(v) + '\n')
-            with open("fullLp.out", "w") as fo:
-                for v in fullVariables:
-                    fo.write(str(v) + '\n')
+    with open("lp.out", "w") as fo:
+        for v in variables:
+            fo.write(str(v) + '\n')
+    with open("fullLp.out", "w") as fo:
+        for v in fullVariables:
+            fo.write(str(v) + '\n')
