@@ -1,13 +1,17 @@
 def save(cplex):
     variables = []
+    values = []
+    names = []
     fullVariables = []
-    maxv = max(cplex.solution.get_values())
     for i, name in enumerate(cplex.variables.get_names()):
-        value = cplex.solution.get_values(i)
         if (name[0] == "y"):
-            if value > (maxv / 100.0):
-                fullVariables.append(name[1:] + " " + str(value))
-                variables.append(name[1:])
+            values.append(cplex.solution.get_values(i))
+            names.append(cplex.variables.get_names(i))
+    maxv = max(values)
+    for i in range(0, len(values)):
+        if values[i] > (maxv / 100.0):
+            fullVariables.append(names[i][1:] + " " + str(values[i]))
+            variables.append(names[i][1:])
     with open("lp.out", "w") as fo:
         for v in variables:
             fo.write(str(v) + '\n')
