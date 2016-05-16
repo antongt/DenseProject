@@ -6,8 +6,6 @@ import sys
 import os
 import cplex
 
-global nIter
-nIter = 5
 
 if(len(sys.argv) < 2):
   sys.exit("usage: python lag.py <file1> ... <fileN>")
@@ -66,7 +64,7 @@ printGraphs(Graphs)
 print "Warning: This file assumes already preprocessed files,"
 print "         meaning the input should be undirected and"
 print "         all node-sets should be equal, see preprocess.py.\n"
-print "Warning: Only does " + str(nItr) + " iterations.\n"
+print "Warning: Only does " + str(5) + " iterations.\n"
 print "Info: total number of edges:" + str(len(xijm))
 
 
@@ -99,7 +97,7 @@ usedNodes = preprocessGreedy.simplePreprocessing(Graphs)
 scalar = 1.0
 dense = cplex.Cplex("dense.lp")
 j = 0
-while(j<nIter):
+while(j<5):
     #remove all output from cplex:
     dense.set_results_stream(None)
 

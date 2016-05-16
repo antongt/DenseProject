@@ -9,7 +9,7 @@ def save(cplex):
             names.append(cplex.variables.get_names(i))
     maxv = max(values)
     for i in range(0, len(values)):
-        if values[i] > (maxv / 100.0):
+        if values[i] > (maxv / 1000.0):
             fullVariables.append(names[i][1:] + " " + str(values[i]))
             variables.append(names[i][1:])
     with open("lp.out", "w") as fo:
